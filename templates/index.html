@@ -1,18 +1,52 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-br">
 <head>
+    <meta charset="UTF-8">
     <title>AGTech Digital</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
 
-    <h1>Enviar texto para planilha</h1>
+    <!-- NAVBAR -->
+    <header class="navbar">
+        <div class="logo">AGTech Digital</div>
+        <nav>
+            <a href="#">Início</a>
+            <a href="#">Módulos</a>
+            <a href="#">Sobre</a>
+            <a href="#">Login</a>
+        </nav>
+    </header>
 
-    <form method="POST">
-        <input type="text" name="texto" placeholder="Digite algo..." required>
-        <button type="submit">Enviar</button>
-    </form>
+    <!-- HERO -->
+    <section class="hero">
+        <h1>Sistema de Gestão Operacional</h1>
+        <p>Unifique presença, escala, indicadores e relatórios em uma única plataforma acessível para sua empresa.</p>
+        <button class="btn-primary">Começar Agora</button>
+    </section>
 
-    <p>{{ mensagem }}</p>
+    <!-- MÓDULOS -->
+    <section class="modules">
+        <div class="card">
+            <h3>Presença</h3>
+            <p>Controle diário de colaboradores com histórico completo.</p>
+        </div>
+
+        <div class="card">
+            <h3>Escala</h3>
+            <p>Organize turnos e equipes com facilidade.</p>
+        </div>
+
+        <div class="card">
+            <h3>Indicadores</h3>
+            <p>Visualize dados estratégicos da operação.</p>
+        </div>
+
+        <div class="card">
+            <h3>Relatórios</h3>
+            <p>Exportação rápida para Excel e PDF.</p>
+        </div>
+    </section>
 
 </body>
 </html>
