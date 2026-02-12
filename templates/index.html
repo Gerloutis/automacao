@@ -1,7 +1,18 @@
 <!DOCTYPE html>
 <html>
+<head>
+    <title>AGTech Digital</title>
+</head>
 <body>
-    <h1>Minha automação</h1>
-    <p>{{ resultado }}</p>
+
+    <h1>Enviar texto para planilha</h1>
+
+    <form method="POST">
+        <input type="text" name="texto" placeholder="Digite algo..." required>
+        <button type="submit">Enviar</button>
+    </form>
+
+    <p>{{ mensagem }}</p>
+
 </body>
 </html>
