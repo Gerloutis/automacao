@@ -1,18 +1,21 @@
-from flask import Flask, render_template, redirect, request
-from automacao import executar
+from flask import Flask, render_template, request
+from automacao import enviar_para_planilha
 import os
 
 app = Flask(__name__)
 
-@app.before_request
-def redirect_to_www():
-    if request.host == "agtechdigital.com.br":
-        return redirect("https://www.agtechdigital.com.br" + request.full_path, code=301)
-
-@app.route("/")
+@app.route("/", methods=["GET", "POST"])
 def home():
-    resultado = executar()
-    return render_template("index.html", resultado=resultado)
+
+    mensagem = ""
+
+    if request.method == "POST":
+        texto = request.form.get("texto")
+
+        if texto:
+            mensagem = enviar_para_planilha(texto)
+
+    return render_template("index.html", mensagem=mensagem)
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
