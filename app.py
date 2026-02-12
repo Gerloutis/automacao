@@ -5,9 +5,9 @@ import os
 app = Flask(__name__)
 
 @app.before_request
-def force_https():
-    if request.headers.get("X-Forwarded-Proto") == "http":
-        return redirect(request.url.replace("http://", "https://"))
+def redirect_to_www():
+    if request.host == "agtechdigital.com.br":
+        return redirect("https://www.agtechdigital.com.br" + request.full_path)
 
 @app.route("/")
 def home():
