@@ -21,10 +21,11 @@ def enviar_para_planilha(texto):
 
     client = gspread.authorize(creds)
 
-    planilha = client.open("NomeDaSuaPlanilha")
+    planilha = client.open_by_key("1sF_wMbYWsne2LVf_DHzhABFQSjlxAFBpaPtKd6vqIbE")
 
     aba = planilha.sheet1
 
     aba.append_row([texto])
 
     return "Texto enviado com sucesso!"
+
