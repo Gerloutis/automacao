@@ -7,7 +7,7 @@ app = Flask(__name__)
 @app.before_request
 def redirect_to_www():
     if request.host == "agtechdigital.com.br":
-        return redirect("https://www.agtechdigital.com.br" + request.full_path)
+        return redirect("https://www.agtechdigital.com.br" + request.full_path, code=301)
 
 @app.route("/")
 def home():
