@@ -15,8 +15,9 @@ def home():
         if texto:
             mensagem = enviar_para_planilha(texto)
 
-    return render_template("index.html", mensagem=mensagem)
+    return render_template("login.html", mensagem=mensagem)
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
     app.run(host="0.0.0.0", port=port)
+
