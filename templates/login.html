@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sistema de Gestão</title>
+    <link rel="stylesheet" href="../static/style.css">
+</head>
+<body>
+
+<div class="container">
+
+    <div class="left">
+
+        <img id="imagem-setor" src="../static/operacao.png">
+
+        <div class="overlay">
+            <h2 id="titulo-setor">Operação</h2>
+            <p id="descricao-setor">
+                Gestão de processos logísticos, controle de estoque e expedição.
+            </p>
+        </div>
+
+    </div>
+
+
+    <div class="right">
+        <!-- TOPO COM AS ABAS -->
+        <div class="top-tabs">
+            <button class="area active" onclick="selecionarArea('operacao', this)">Operação</button>
+            <button class="area" onclick="selecionarArea('rh', this)">RH</button>
+            <button class="area" onclick="selecionarArea('planejamento', this)">Planejamento</button>
+        </div>
+            
+        <h2>LOGIN</h2>
+
+        <form action="/entrar" method="POST">
+            <input type="hidden" name="tipo" id="tipo" value="operacao">
+
+            <input type="text" name="usuario" placeholder="Usuário" required>
+            <input type="password" name="senha" placeholder="Senha" required>
+
+            <button type="submit" class="btn-login">Entrar</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    function selecionarArea(area, botao){
+
+        document.getElementById("tipo").value = area;
+
+        let botoes = document.querySelectorAll(".area");
+        botoes.forEach(b => b.classList.remove("active"));
+        botao.classList.add("active");
+
+        let imagem = document.getElementById("imagem-setor");
+        let titulo = document.getElementById("titulo-setor");
+        let descricao = document.getElementById("descricao-setor");
+
+        // FADE OUT
+        imagem.classList.add("fade-out");
+
+        setTimeout(() => {
+
+            if(area === "operacao"){
+                imagem.src = "../static/operacao.png";
+                titulo.innerText = "Operação";
+                descricao.innerText = "Gestão de processos logísticos, controle de estoque e expedição.";
+            }
+
+            else if(area === "rh"){
+                imagem.src = "../static/rh.png";
+                titulo.innerText = "Recursos Humanos";
+                descricao.innerText = "Gestão de pessoas, admissões, indicadores e desenvolvimento.";
+            }
+
+            else if(area === "planejamento"){
+                imagem.src = "../static/planejamento.png";
+                titulo.innerText = "Planejamento";
+                descricao.innerText = "Estratégia, análise de dados e otimização de resultados.";
+            }
+
+            // FADE IN
+            imagem.classList.remove("fade-out");
+
+        }, 400); // mesmo tempo do CSS
+    }
+
+</script>
+
+
+</body>
+</html>
