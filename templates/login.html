@@ -3,6 +3,7 @@
 <head>
     <title>Sistema de Gestão</title>
     <link rel="stylesheet" href="../static/style.css">
+    <link rel="icon" type="image/ico" href="../static/favicon.ico">
 </head>
 <body>
 
@@ -18,75 +19,120 @@
                 Gestão de processos logísticos, controle de estoque e expedição.
             </p>
         </div>
-
     </div>
 
-
     <div class="right">
-        <!-- TOPO COM AS ABAS -->
         <div class="top-tabs">
-            <button class="area active" onclick="selecionarArea('operacao', this)">Operação</button>
-            <button class="area" onclick="selecionarArea('rh', this)">RH</button>
-            <button class="area" onclick="selecionarArea('planejamento', this)">Planejamento</button>
+            <button class="area pos-center active" onclick="selecionarArea('operacao', this)">OPERAÇÃO</button>
+            <button class="area pos-left" onclick="selecionarArea('rh', this)">RH</button>
+            <button class="area pos-right" onclick="selecionarArea('planejamento', this)">PLANEJAMENTO</button>
+
         </div>
             
-        <h2>LOGIN</h2>
+        <div class="login-info fade-text">
+            <h2 id="titulo-login">Acesso à Operação</h2>
+            <p id="texto-login">
+                Supervisores, coordenadores e gerentes acompanham os processos logísticos,
+                controle de expedição e gestão de estoque em tempo real.
+            </p>
+        </div>
 
         <form action="/entrar" method="POST">
+
             <input type="hidden" name="tipo" id="tipo" value="operacao">
 
             <input type="text" name="usuario" placeholder="Usuário" required>
             <input type="password" name="senha" placeholder="Senha" required>
 
+            <div class="login-options">
+                <label>
+                    <input type="checkbox" name="lembrar">
+                    Lembrar de mim
+                </label>
+
+                <a href="#" class="forgot">Esqueceu a senha?</a>
+            </div>
+
             <button type="submit" class="btn-login">Entrar</button>
+
         </form>
+
     </div>
 </div>
-
 <script>
-    function selecionarArea(area, botao){
+function selecionarArea(area, botao){
 
-        document.getElementById("tipo").value = area;
+    document.getElementById("tipo").value = area;
 
-        let botoes = document.querySelectorAll(".area");
-        botoes.forEach(b => b.classList.remove("active"));
-        botao.classList.add("active");
+    const botoes = document.querySelectorAll(".area");
+    const imagem = document.getElementById("imagem-setor");
+    const titulo = document.getElementById("titulo-setor");
+    const descricao = document.getElementById("descricao-setor");
 
-        let imagem = document.getElementById("imagem-setor");
-        let titulo = document.getElementById("titulo-setor");
-        let descricao = document.getElementById("descricao-setor");
+    const tituloLogin = document.getElementById("titulo-login");
+    const textoLogin = document.getElementById("texto-login");
+    const boxTexto = document.querySelector(".login-info");
 
-        // FADE OUT
-        imagem.classList.add("fade-out");
+    imagem.classList.add("fade-out");
+    boxTexto.classList.add("fade-out-text");
 
-        setTimeout(() => {
+    setTimeout(()=>{
 
-            if(area === "operacao"){
-                imagem.src = "../static/operacao.png";
-                titulo.innerText = "Operação";
-                descricao.innerText = "Gestão de processos logísticos, controle de estoque e expedição.";
-            }
+        /* CONTEÚDO */
 
-            else if(area === "rh"){
-                imagem.src = "../static/rh.png";
-                titulo.innerText = "Recursos Humanos";
-                descricao.innerText = "Gestão de pessoas, admissões, indicadores e desenvolvimento.";
-            }
+        if(area === "operacao"){
+            imagem.src = "../static/operacao.png";
+            titulo.innerText = "Operação";
+            descricao.innerText = "Gestão de processos logísticos, controle de estoque e expedição.";
+            tituloLogin.innerText = "Acesso à Operação";
+            textoLogin.innerText = "Supervisores, coordenadores e gerentes acompanham os processos logísticos, controle de expedição e gestão de estoque em tempo real.";
+        }
 
-            else if(area === "planejamento"){
-                imagem.src = "../static/planejamento.png";
-                titulo.innerText = "Planejamento";
-                descricao.innerText = "Estratégia, análise de dados e otimização de resultados.";
-            }
+        else if(area === "rh"){
+            imagem.src = "../static/rh.png";
+            titulo.innerText = "Recursos Humanos";
+            descricao.innerText = "Gestão de pessoas, admissões, indicadores e desenvolvimento.";
+            tituloLogin.innerText = "Acesso ao RH";
+            textoLogin.innerText = "Equipe de Recursos Humanos e agências gerenciam admissões, desligamentos, documentos, indicadores de pessoas e movimentações internas.";
+        }
 
-            // FADE IN
-            imagem.classList.remove("fade-out");
+        else if(area === "planejamento"){
+            imagem.src = "../static/planejamento.png";
+            titulo.innerText = "Planejamento";
+            descricao.innerText = "Estratégia, análise de dados e otimização de resultados.";
+            tituloLogin.innerText = "Acesso ao Planejamento";
+            textoLogin.innerText = "Analistas e gestores acompanham dados estratégicos, projeções operacionais, liberação de insumos e otimização de recursos.";
+        }
+        /* RESET POSIÇÕES */
 
-        }, 400); // mesmo tempo do CSS
-    }
+        botoes.forEach(btn=>{
+            btn.classList.remove("active","pos-left","pos-center","pos-right");
+        });
 
+        botao.classList.add("active","pos-center");
+
+        let index = Array.from(botoes).indexOf(botao);
+
+        if(index === 0){
+            botoes[1].classList.add("pos-right");
+            botoes[2].classList.add("pos-left");
+        }
+
+        if(index === 1){
+            botoes[0].classList.add("pos-left");
+            botoes[2].classList.add("pos-right");
+        }
+
+        if(index === 2){
+            botoes[0].classList.add("pos-left");
+            botoes[1].classList.add("pos-right");
+        }
+
+        imagem.classList.remove("fade-out");
+        boxTexto.classList.remove("fade-out-text");
+
+    },400);
+}
 </script>
-
-
 </body>
 </html>
