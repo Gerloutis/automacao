@@ -7,7 +7,7 @@
 body{
     height:100vh;
     font-family:Arial, sans-serif;
-    background:#5AAAFD url("../static/bg.webp") center/cover no-repeat;
+    background-image: url("fundo.png");
     background-size: 100%;
     display:flex;
     justify-content:center;
