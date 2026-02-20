@@ -1,23 +1,75 @@
-from flask import Flask, render_template, request
-from automacao import enviar_para_planilha
 import os
+import psycopg2
+from flask import Flask, render_template, request, redirect, session, url_for
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = Flask(__name__)
+app.secret_key = "chave_super_secreta"
 
-@app.route("/", methods=["GET", "POST"])
-def home():
+# 🔗 conexão com Railway
+def get_connection():
+    return psycopg2.connect(os.getenv("DATABASE_URL"), sslmode="require")
 
-    mensagem = ""
 
-    if request.method == "POST":
-        texto = request.form.get("texto")
+# =========================
+# LOGIN
+# =========================
+@app.route("/")
+def login():
+    return render_template("login.html")
 
-        if texto:
-            mensagem = enviar_para_planilha(texto)
 
-    return render_template("login.html", mensagem=mensagem)
+@app.route("/entrar", methods=["POST"])
+def entrar():
 
+    usuario = request.form["usuario"]
+    senha = request.form["senha"]
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        "SELECT * FROM login WHERE usuario = %s AND senha = %s",
+        (usuario, senha)
+    )
+
+    resultado = cursor.fetchone()
+
+    cursor.close()
+    conn.close()
+
+    if resultado:
+        session["usuario"] = usuario
+        return redirect(url_for("operacao"))
+
+    return "Usuário ou senha inválidos"
+
+
+# =========================
+# ÁREA LOGADA
+# =========================
+@app.route("/operacao")
+def operacao():
+
+    if "usuario" not in session:
+        return redirect(url_for("login"))
+
+    return f"Bem-vindo, {session['usuario']}! 🚀"
+
+
+# =========================
+# LOGOUT
+# =========================
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect(url_for("login"))
+
+
+# =========================
+# START
+# =========================
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 8080))
-    app.run(host="0.0.0.0", port=port)
-
+    app.run(debug=True)
