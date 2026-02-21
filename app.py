@@ -3,6 +3,7 @@ import psycopg2
 from flask import Flask, render_template, request, redirect, session, url_for
 from dotenv import load_dotenv
 
+print(os.getenv("DATABASE_URL"))
 load_dotenv()
 
 app = Flask(__name__)
@@ -73,3 +74,4 @@ def logout():
 # =========================
 if __name__ == "__main__":
     app.run(debug=True)
+
