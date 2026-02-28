@@ -3,3 +3,5 @@ gspread
 google-auth
 psycopg2
 dotenv
+pandas
+sqlalchemy
