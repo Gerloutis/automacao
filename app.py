@@ -107,12 +107,12 @@ def importar_colaboradores():
         "TURNO",
         "ÁREA",
         "SETOR",
-        "STATUS",
+        "EMPRESA",
         "Data Admissão",
         "Data Demissão",
-        "EMPRESA"
+        "STATUS"
     ]]
-
+    
     df.columns = [
         "matricula",
         "nome",
@@ -122,10 +122,10 @@ def importar_colaboradores():
         "turno",
         "area",
         "setor",
-        "status",
+        "empresa",
         "data_admissao",
         "data_demissao",
-        "empresa"
+        "status"
     ]
 
     df.to_sql(
@@ -165,3 +165,4 @@ def logout():
 # =========================
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+
