@@ -76,12 +76,70 @@ def presenca():
 @app.route("/insumos")
 def insumos():
     return "<h1>Tela de Insumos</h1>"
-    
+
+@app.route("/importar_colaboradores", methods=["POST"])
+def importar_colaboradores():
+
+    if "usuario" not in session:
+        return redirect(url_for("login"))
+
+    arquivo = request.files["arquivo"]
+
+    df = pd.read_excel(arquivo)
+
+    # 🔥 pega só as colunas necessárias do seu modelo real
+    df = df[[
+        "MATRÍCULA",
+        "COLABORADOR",
+        "COORDENADOR",
+        "SUPERVISOR",
+        "CARGO",
+        "TURNO",
+        "ÁREA",
+        "SETOR",
+        "STATUS",
+        "Data Admissão",
+        "Data Demissão",
+        "EMPRESA"
+    ]]
+
+    # renomeia pro banco
+    df.columns = [
+        "matricula",
+        "nome",
+        "coordenador",
+        "supervisor",
+        "cargo",
+        "turno",
+        "area",
+        "setor",
+        "status",
+        "data_admissao",
+        "data_demissao",
+        "empresa"
+    ]
+
+    # salva no banco
+    df.to_sql(
+        "colaboradores",
+        engine,
+        if_exists="append",
+        index=False
+    )
+
+    return "✅ Colaboradores importados com sucesso!"
+@app.route("/configuracoes")
+def configuracoes():
+    if not verificar_login("operacao"):
+        return redirect(url_for("login"))
+
+    return render_template("configuracoes.html")
 # =========================
 # START
 # =========================
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+
 
 
 
