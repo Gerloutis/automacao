@@ -57,7 +57,7 @@ def operacao():
     if "usuario" not in session:
         return redirect(url_for("login"))
 
-    return f"Bem-vindo, {session['usuario']}! 🚀"
+    return redirect(url_for("operacao"))
 
 
 # =========================
@@ -82,6 +82,7 @@ def insumos():
 # =========================
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+
 
 
 
