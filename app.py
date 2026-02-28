@@ -69,10 +69,19 @@ def logout():
     return redirect(url_for("login"))
 
 
+@app.route("/presenca")
+def presenca():
+    return "<h1>Tela de Presença</h1>"
+
+@app.route("/insumos")
+def insumos():
+    return "<h1>Tela de Insumos</h1>"
+    
 # =========================
 # START
 # =========================
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+
 
 
