@@ -5,15 +5,19 @@ from dotenv import load_dotenv
 import pandas as pd
 from sqlalchemy import create_engine
 
-print(os.getenv("DATABASE_URL"))
 load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = "chave_super_secreta"
 
-# 🔗 conexão com Railway
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+# 🔗 psycopg2 (login)
 def get_connection():
-    return psycopg2.connect(os.getenv("DATABASE_URL"), sslmode="require")
+    return psycopg2.connect(DATABASE_URL, sslmode="require")
+
+# 🔗 SQLAlchemy (pandas)
+engine = create_engine(DATABASE_URL)
 
 
 # =========================
@@ -51,45 +55,49 @@ def entrar():
 
 
 # =========================
+# PROTEÇÃO
+# =========================
+def usuario_logado():
+    return "usuario" in session
+
+
+# =========================
 # ÁREA LOGADA
 # =========================
 @app.route("/operacao")
 def operacao():
 
-    if "usuario" not in session:
+    if not usuario_logado():
         return redirect(url_for("login"))
 
     return render_template("operacao.html")
 
 
 # =========================
-# LOGOUT
+# CONFIGURAÇÕES
 # =========================
-@app.route("/logout")
-def logout():
-    session.clear()
-    return redirect(url_for("login"))
+@app.route("/configuracoes")
+def configuracoes():
+
+    if not usuario_logado():
+        return redirect(url_for("login"))
+
+    return render_template("configuracoes.html")
 
 
-@app.route("/presenca")
-def presenca():
-    return "<h1>Tela de Presença</h1>"
-
-@app.route("/insumos")
-def insumos():
-    return "<h1>Tela de Insumos</h1>"
-
+# =========================
+# IMPORTAR EXCEL
+# =========================
 @app.route("/importar_colaboradores", methods=["POST"])
 def importar_colaboradores():
 
-    if "usuario" not in session:
+    if not usuario_logado():
         return redirect(url_for("login"))
 
     arquivo = request.files["arquivo"]
 
     df = pd.read_excel(arquivo)
 
-    # 🔥 pega só as colunas necessárias do seu modelo real
     df = df[[
         "MATRÍCULA",
         "COLABORADOR",
@@ -105,7 +113,6 @@ def importar_colaboradores():
         "EMPRESA"
     ]]
 
-    # renomeia pro banco
     df.columns = [
         "matricula",
         "nome",
@@ -121,7 +128,6 @@ def importar_colaboradores():
         "empresa"
     ]
 
-    # salva no banco
     df.to_sql(
         "colaboradores",
         engine,
@@ -130,21 +136,32 @@ def importar_colaboradores():
     )
 
     return "✅ Colaboradores importados com sucesso!"
-@app.route("/configuracoes")
-def configuracoes():
-    if not verificar_login("operacao"):
-        return redirect(url_for("login"))
 
-    return render_template("configuracoes.html")
+
+# =========================
+# OUTRAS TELAS
+# =========================
+@app.route("/presenca")
+def presenca():
+    return "<h1>Tela de Presença</h1>"
+
+
+@app.route("/insumos")
+def insumos():
+    return "<h1>Tela de Insumos</h1>"
+
+
+# =========================
+# LOGOUT
+# =========================
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect(url_for("login"))
+
+
 # =========================
 # START
 # =========================
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
-
-
-
-
-
-
-
