@@ -98,6 +98,8 @@ def importar_colaboradores():
 
     df = pd.read_excel(arquivo)
 
+    df.columns = df.columns.str.strip()
+    
     df = df[[
         "MATRÍCULA",
         "COLABORADOR",
@@ -106,11 +108,11 @@ def importar_colaboradores():
         "CARGO",
         "TURNO",
         "ÁREA",
-        "SETOR",
-        "EMPRESA",
+        "PROCESSO",
+        "STATUS",
         "Data Admissão",
         "Data Demissão",
-        "STATUS"
+        "EMPRESA"
     ]]
     
     df.columns = [
@@ -122,12 +124,11 @@ def importar_colaboradores():
         "turno",
         "area",
         "setor",
-        "empresa",
+        "status",
         "data_admissao",
         "data_demissao",
-        "status"
+        "empresa"
     ]
-
     df.to_sql(
         "colaboradores",
         engine,
@@ -165,4 +166,5 @@ def logout():
 # =========================
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+
 
