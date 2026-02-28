@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Configurações do Sistema</title>
+    <link rel="stylesheet" href="../static/style.css">
+</head>
+<body>
+
+<div class="dashboard">
+
+    <div class="topo">
+        <h2>⚙️ Configurações do Sistema</h2>
+        <a href="/operacao">Voltar</a>
+    </div>
+
+    <div class="cards">
+
+        <div class="card" style="width:400px">
+
+            <h3>📤 Importar Colaboradores</h3>
+
+            <form action="/importar_colaboradores" method="POST" enctype="multipart/form-data">
+
+                <input type="file" name="arquivo" accept=".xlsx" required>
+
+                <button type="submit" class="btn-login">
+                    Importar Excel
+                </button>
+
+            </form>
+
+            <p>
+                A planilha deve conter:<br>
+                Matrícula, Colaborador, Supervisor, Coordenador, Cargo, Turno, Área, Setor, Status…
+            </p>
+
+        </div>
+
+    </div>
+
+</div>
+
+</body>
+</html>
