@@ -2,6 +2,8 @@ import os
 import psycopg2
 from flask import Flask, render_template, request, redirect, session, url_for
 from dotenv import load_dotenv
+import pandas as pd
+from sqlalchemy import create_engine
 
 print(os.getenv("DATABASE_URL"))
 load_dotenv()
@@ -139,6 +141,7 @@ def configuracoes():
 # =========================
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+
 
 
 
