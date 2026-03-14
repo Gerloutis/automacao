@@ -17,6 +17,7 @@ import json, base64
 import pandas as pd
 from zoneinfo import ZoneInfo
 from decimal import Decimal, getcontext
+from dotenv import load_dotenv
 from datetime import date, datetime, timedelta
 from google.auth.transport.requests import Request
 from google.oauth2.service_account import Credentials
@@ -25,13 +26,13 @@ from gspread_dataframe import set_with_dataframe, get_as_dataframe
 from google.oauth2.credentials import Credentials as UserCredentials
 
 # ========== CREDENCIAIS EMBUTIDAS ==========
-
+load_dotenv()
 CREDENCIAL = os.environ.get("GOOGLE_CREDENTIALS")
 
 DEPENDENCIAS = ["https://www.googleapis.com/auth/spreadsheets","https://www.googleapis.com/auth/drive"]
 
+
 def _creds_embutidas():
-    
     data = CREDENCIAL.strip()
     info = json.loads(data)
     
