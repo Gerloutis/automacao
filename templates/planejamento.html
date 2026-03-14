@@ -1,2 +1,82 @@
-<h1>Área de Planejamento</h1>
-<a href="/">Sair</a>
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <title>Fisia • Automação FY</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="/static/styles.css" rel="stylesheet" />
+</head>
+<body class="theme-fisia">
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo-fisia" aria-hidden="true">
+        <svg viewBox="0 0 64 64" width="28" height="28">
+          <circle cx="32" cy="32" r="22" fill="none" stroke="currentColor" stroke-width="4"/>
+          <path d="M22 40h13M22 24h20M22 32h16" stroke="currentColor" stroke-width="4" stroke-linecap="round" fill="none"/>
+        </svg>
+      </div>
+      <div class="titles">
+        <h1>Fisia • Automação FY</h1>
+        <p>Execuções rápidas com a data de hoje</p>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="card">
+      <div class="card-head">
+        <h2 class="card-title with-accent">Ações rápidas</h2>
+        <div id="today" class="today-chip" title="Data usada automaticamente"></div>
+      </div>
+
+      <!-- Grid de botões redondos -->
+      <div class="pill-grid">
+        <button id="btnVerificar" class="pill-btn ghost">
+          <span class="pill-ico">🔎</span>
+          <span class="pill-text">Verificar</span>
+        </button>
+
+        <button id="btnDES" class="pill-btn">
+          <span class="pill-ico">🧹</span>
+          <span class="pill-text">DES</span>
+          <span class="pill-sub">Des → QHC → Base Mãe (Desl.) → Ativos → Quadro FY (ACT)</span>
+        </button>
+
+        <button id="btnTO" class="pill-btn">
+          <span class="pill-ico">📉</span>
+          <span class="pill-text">TO</span>
+          <span class="pill-sub">TO → Planejamento → WHS (TO%)</span>
+        </button>
+
+        <button id="btnABS" class="pill-btn">
+          <span class="pill-ico">📋</span>
+          <span class="pill-text">ABS</span>
+          <span class="pill-sub">Presença → ABS FY → Planejamento → WHS (ABS%)</span>
+        </button>
+
+        <button id="btnResumos" class="pill-btn">
+          <span class="pill-ico">🗓️</span>
+          <span class="pill-text">Resumos</span>
+          <span class="pill-sub">Atualizar Resumo Mensal TO + ABS</span>
+        </button>
+      </div>
+
+      <div id="progress" class="progress" hidden>
+        <div class="bar"></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <h2 class="card-title with-accent">Log da execução</h2>
+        <button id="btnCopiar" class="btn-ghost">Copiar log</button>
+      </div>
+      <pre id="log" class="log"></pre>
+      <footer class="footnote">© AGTec • Desenvolvido por Antonio Gerle Teofilo da Silva</footer>
+    </section>
+  </main>
+
+  <div id="toasts" class="toasts"></div>
+  <script src="/static/app.js"></script>
+</body>
+</html>
