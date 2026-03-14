@@ -26,7 +26,7 @@ from google.oauth2.credentials import Credentials as UserCredentials
 
 # ========== CREDENCIAIS EMBUTIDAS ==========
 
-CREDENCIAL = 
+CREDENCIAL = os.environ.get("GOOGLE_CREDENTIALS")
 
 DEPENDENCIAS = ["https://www.googleapis.com/auth/spreadsheets","https://www.googleapis.com/auth/drive"]
 
