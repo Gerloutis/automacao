@@ -27,12 +27,25 @@ engine = create_engine(DATABASE_URL)
 def login():
     return render_template("login.html")
 
+@app.route("/planejamento")
+def planejamento():
 
+    if not usuario_logado():
+        return redirect(url_for("login"))
+
+    return render_template("planejamento.html")
+    
 @app.route("/entrar", methods=["POST"])
 def entrar():
 
     usuario = request.form["usuario"]
     senha = request.form["senha"]
+
+    # LOGIN ESPECIAL PARA PLANEJAMENTO
+    if usuario == "gerle" and senha == "123":
+        session["usuario"] = usuario
+        session["tipo"] = "planejamento"
+        return redirect(url_for("planejamento"))
 
     conn = get_connection()
     cursor = conn.cursor()
@@ -49,11 +62,10 @@ def entrar():
 
     if resultado:
         session["usuario"] = usuario
+        session["tipo"] = "operacao"
         return redirect(url_for("operacao"))
 
     return "Usuário ou senha inválidos"
-
-
 # =========================
 # PROTEÇÃO
 # =========================
