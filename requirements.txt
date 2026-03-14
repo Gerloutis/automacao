@@ -6,3 +6,8 @@ dotenv
 pandas
 sqlalchemy
 openpyxl
+numpy
+google-auth
+google-auth-oauthlib
+gspread-dataframe
+gunicorn
