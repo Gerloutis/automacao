@@ -25,7 +25,7 @@ def get_connection():
 engine = create_engine(DATABASE_URL)
 
 try:
-    from app_planejamento import (
+    from planejamento import (
         get_gc,
         processar_dia,
         _unique_preservando_ordem,
