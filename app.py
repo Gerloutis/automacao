@@ -130,7 +130,7 @@ def run():
         datas = _unique_preservando_ordem(datas)
 
     order = [
-        "des_qhc",
+        "des_para_qhc",
         "qhc_base_mae",
         "act_quadro_fy",
         "to_planejamento",
@@ -160,7 +160,7 @@ def run():
                             else:
                                 print("[ERRO] processar_dia não encontrada.")
 
-                        elif t == "des_qhc":
+                        elif t == "des_para_qhc":
                             if des_para_qhc:
                                 des_para_qhc(d)
                             else:
