@@ -100,7 +100,7 @@ MESES_PT = {
     12: "DEZEMBRO"
 }
 
-STATUS_PRESENCA = ["P", "F", "AT", "PA", "HE", "FC", "FBH", "S", "AF", "FE"]
+STATUS_PRESENCA = ["P", "F", "AT", "PA", "HE", "FC", "FBH", "S", "AF", "FE", "DES"]
 
 def nome_aba_mes_atual():
     hoje = datetime.now()
@@ -161,22 +161,17 @@ def carregar_presenca_supervisor(nome_supervisor):
 
     return filtrado, ws, coluna_dia
 
-@app.route("/salvar_presenca", methods=["POST"])
-def salvar_presenca():
+@app.route("/salvar_presencas", methods=["POST"])
+def salvar_presencas():
     if not usuario_supervisor():
         return jsonify({"ok": False, "msg": "Não autorizado."}), 401
 
     try:
         dados = request.get_json(force=True)
+        presencas = dados.get("presencas", [])
 
-        matricula = str(dados.get("matricula", "")).strip()
-        status = str(dados.get("status", "")).strip().upper()
-
-        if not matricula or not status:
-            return jsonify({"ok": False, "msg": "Matrícula e status são obrigatórios."}), 400
-
-        if status not in STATUS_PRESENCA:
-            return jsonify({"ok": False, "msg": "Status inválido."}), 400
+        if not presencas:
+            return jsonify({"ok": False, "msg": "Nenhuma presença recebida."}), 400
 
         nome_supervisor = session.get("nome")
         df, ws, coluna_dia = carregar_presenca_supervisor(nome_supervisor)
@@ -187,40 +182,51 @@ def salvar_presenca():
         if not coluna_dia:
             return jsonify({"ok": False, "msg": "Coluna do dia atual não encontrada."}), 404
 
-        df["MATRÍCULA"] = df["MATRÍCULA"].astype(str).str.strip()
-        linha_df = df[df["MATRÍCULA"] == matricula]
-
-        if linha_df.empty:
-            return jsonify({"ok": False, "msg": "Colaborador não encontrado para este supervisor."}), 404
-
         todos_valores = ws.get_all_values()
         cabecalho = [str(c).strip() for c in todos_valores[0]]
 
-        try:
-            col_idx = cabecalho.index(coluna_dia) + 1
-        except ValueError:
-            return jsonify({"ok": False, "msg": "Coluna do dia não encontrada na aba."}), 404
+        if "MATRÍCULA" not in cabecalho:
+            return jsonify({"ok": False, "msg": "Coluna MATRÍCULA não encontrada."}), 404
 
-        linha_planilha = None
+        if "SUPERVISOR" not in cabecalho:
+            return jsonify({"ok": False, "msg": "Coluna SUPERVISOR não encontrada."}), 404
+
+        col_idx = cabecalho.index(coluna_dia) + 1
         idx_matricula = cabecalho.index("MATRÍCULA")
+        idx_supervisor = cabecalho.index("SUPERVISOR")
+
+        linhas_por_matricula = {}
 
         for i, linha in enumerate(todos_valores[1:], start=2):
             mat = str(linha[idx_matricula]).strip() if idx_matricula < len(linha) else ""
-            sup = ""
-            if "SUPERVISOR" in cabecalho:
-                idx_sup = cabecalho.index("SUPERVISOR")
-                sup = str(linha[idx_sup]).strip().upper() if idx_sup < len(linha) else ""
+            sup = str(linha[idx_supervisor]).strip().upper() if idx_supervisor < len(linha) else ""
 
-            if mat == matricula and sup == str(nome_supervisor).strip().upper():
-                linha_planilha = i
-                break
+            if mat and sup == str(nome_supervisor).strip().upper():
+                linhas_por_matricula[mat] = i
 
-        if not linha_planilha:
-            return jsonify({"ok": False, "msg": "Linha do colaborador não encontrada."}), 404
+        atualizacoes = 0
 
-        ws.update_cell(linha_planilha, col_idx, status)
+        for item in presencas:
+            matricula = str(item.get("matricula", "")).strip()
+            status = str(item.get("status", "")).strip().upper()
 
-        return jsonify({"ok": True, "msg": "Presença salva com sucesso."})
+            if not matricula or not status:
+                continue
+
+            if status not in STATUS_PRESENCA:
+                continue
+
+            linha_planilha = linhas_por_matricula.get(matricula)
+            if not linha_planilha:
+                continue
+
+            ws.update_cell(linha_planilha, col_idx, status)
+            atualizacoes += 1
+
+        return jsonify({
+            "ok": True,
+            "msg": f"{atualizacoes} presença(s) salva(s) com sucesso."
+        })
 
     except Exception as e:
         return jsonify({"ok": False, "msg": str(e)}), 500
@@ -554,27 +560,36 @@ def presenca():
         colaboradores = []
         if not df.empty:
             for _, row in df.iterrows():
+                status_hoje = row.get(coluna_dia, "") if coluna_dia else ""
+
                 colaboradores.append({
-                    "matricula": row.get("MATRÍCULA", ""),
-                    "colaborador": row.get("COLABORADOR", ""),
-                    "turno": row.get("TURNO", ""),
-                    "linha": row.get("LINHA", ""),
-                    "ponto": row.get("PONTO", ""),
-                    "status_hoje": row.get(coluna_dia, "") if coluna_dia else ""
+                    "matricula": str(row.get("MATRÍCULA", "")).strip(),
+                    "colaborador": str(row.get("COLABORADOR", "")).strip(),
+                    "cargo": str(row.get("CARGO", "")).strip(),
+                    "area": str(row.get("ÁREA", "")).strip(),
+                    "cidade": str(row.get("CIDADE", "")).strip(),
+                    "turno": str(row.get("TURNO", "")).strip(),
+                    "status_hoje": str(status_hoje).strip(),
+                    "obs_hoje": "",
+                    "desligado": str(row.get("STATUS", "")).strip().upper() == "DESLIGADO"
                 })
+
+        matriculas = [c["matricula"] for c in colaboradores if c["matricula"]]
 
         return render_template(
             "presenca.html",
             supervisor=nome_supervisor,
+            usuario=session.get("usuario"),
             coluna_dia=coluna_dia,
+            data_hoje=datetime.now().strftime("%d/%m/%Y"),
             colaboradores=colaboradores,
+            matriculas=matriculas,
             status_opcoes=STATUS_PRESENCA
         )
 
     except Exception as e:
         return f"Erro ao carregar presença: {e}"
-
-
+        
 @app.route("/insumos")
 def insumos():
     return "<h1>Tela de Insumos</h1>"
