@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Realizar Presença</title>
+    <link rel="stylesheet" href="../static/style.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f9;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 30px auto;
+            background: white;
+            border-radius: 14px;
+            padding: 24px;
+            box-shadow: 0 4px 18px rgba(0,0,0,0.08);
+        }
+
+        .topo {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .topo a {
+            text-decoration: none;
+            color: white;
+            background: #dc3545;
+            padding: 10px 16px;
+            border-radius: 8px;
+        }
+
+        h2 {
+            margin: 0;
+        }
+
+        .subinfo {
+            margin: 10px 0 20px 0;
+            color: #444;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        th, td {
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+            text-align: left;
+        }
+
+        th {
+            background: #1f2937;
+            color: white;
+        }
+
+        select {
+            padding: 8px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+        }
+
+        button {
+            padding: 8px 14px;
+            border: none;
+            border-radius: 8px;
+            background: #2563eb;
+            color: white;
+            cursor: pointer;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        .vazio {
+            padding: 20px;
+            background: #fff3cd;
+            border-radius: 10px;
+            color: #856404;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="topo">
+            <div>
+                <h2>📋 Realizar Presença</h2>
+                <div class="subinfo">
+                    Supervisor: <strong>{{ supervisor }}</strong><br>
+                    Coluna do dia: <strong>{{ coluna_dia or 'Não encontrada' }}</strong>
+                </div>
+            </div>
+            <div>
+                <a href="/operacao">Voltar</a>
+            </div>
+        </div>
+
+        {% if colaboradores %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Matrícula</th>
+                    <th>Colaborador</th>
+                    <th>Turno</th>
+                    <th>Linha</th>
+                    <th>Ponto</th>
+                    <th>Status de hoje</th>
+                    <th>Ação</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for c in colaboradores %}
+                <tr>
+                    <td>{{ c.matricula }}</td>
+                    <td>{{ c.colaborador }}</td>
+                    <td>{{ c.turno }}</td>
+                    <td>{{ c.linha }}</td>
+                    <td>{{ c.ponto }}</td>
+                    <td>
+                        <select id="status-{{ c.matricula }}">
+                            <option value="">Selecione</option>
+                            {% for s in status_opcoes %}
+                                <option value="{{ s }}" {% if c.status_hoje == s %}selected{% endif %}>{{ s }}</option>
+                            {% endfor %}
+                        </select>
+                    </td>
+                    <td>
+                        <button onclick="salvarPresenca('{{ c.matricula }}')">Salvar</button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+            <div class="vazio">
+                Nenhum colaborador encontrado para este supervisor.
+            </div>
+        {% endif %}
+    </div>
+
+    <script>
+        async function salvarPresenca(matricula) {
+            const status = document.getElementById(`status-${matricula}`).value;
+
+            if (!status) {
+                alert("Selecione um status.");
+                return;
+            }
+
+            const res = await fetch("/salvar_presenca", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    matricula: matricula,
+                    status: status
+                })
+            });
+
+            const json = await res.json();
+            alert(json.msg);
+        }
+    </script>
+</body>
+</html>
