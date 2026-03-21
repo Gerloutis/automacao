@@ -10,3 +10,4 @@ numpy
 google-auth
 google-auth-oauthlib
 gspread-dataframe
+libpq5
