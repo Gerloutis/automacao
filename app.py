@@ -115,13 +115,33 @@ def carregar_presenca_supervisor(nome_supervisor):
     sh = gc.open_by_key(PLANILHA_PRESENCA_ID)
     ws = sh.worksheet(nome_aba_mes_atual())
 
-    registros = ws.get_all_records()
-    df = pd.DataFrame(registros)
+    valores = ws.get_all_values()
+
+    if not valores or len(valores) < 2:
+        return pd.DataFrame(), ws, None
+
+    cabecalho = [str(c).strip() for c in valores[0]]
+    linhas = valores[1:]
+
+    # Deixa os nomes das colunas únicos
+    cabecalho_unico = []
+    contadores = {}
+
+    for col in cabecalho:
+        nome = col if col else "COLUNA_VAZIA"
+
+        if nome in contadores:
+            contadores[nome] += 1
+            nome = f"{nome}_{contadores[nome]}"
+        else:
+            contadores[nome] = 0
+
+        cabecalho_unico.append(nome)
+
+    df = pd.DataFrame(linhas, columns=cabecalho_unico)
 
     if df.empty:
         return df, ws, None
-
-    df.columns = [str(c).strip() for c in df.columns]
 
     if "SUPERVISOR" not in df.columns:
         raise ValueError("Coluna SUPERVISOR não encontrada na planilha.")
@@ -133,6 +153,7 @@ def carregar_presenca_supervisor(nome_supervisor):
 
     coluna_dia = None
     prefixo = prefixo_coluna_hoje()
+
     for col in filtrado.columns:
         if str(col).startswith(prefixo):
             coluna_dia = col
