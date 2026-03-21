@@ -2,173 +2,483 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Realizar Presença</title>
-    <link rel="stylesheet" href="../static/style.css">
+    <title>Sistema de Presença</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
+        * {
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: Arial, sans-serif;
-            background: #f4f6f9;
             margin: 0;
-            padding: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background: linear-gradient(180deg, #05080d 0%, #0b1118 100%);
+            color: #ffffff;
         }
 
-        .container {
-            max-width: 1200px;
-            margin: 30px auto;
-            background: white;
-            border-radius: 14px;
-            padding: 24px;
-            box-shadow: 0 4px 18px rgba(0,0,0,0.08);
+        .topbar {
+            width: 100%;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            background: rgba(0, 0, 0, 0.25);
         }
 
-        .topo {
+        .topbar-inner {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 18px 28px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 24px;
+            gap: 20px;
         }
 
-        .topo a {
+        .topbar-left {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .btn-menu {
+            background: linear-gradient(90deg, #ff8b1f, #ff5e2f);
+            color: #111;
             text-decoration: none;
-            color: white;
-            background: #dc3545;
-            padding: 10px 16px;
-            border-radius: 8px;
+            font-weight: 700;
+            font-size: 16px;
+            padding: 12px 22px;
+            border-radius: 14px;
+            box-shadow: 0 8px 24px rgba(255, 120, 40, 0.22);
         }
 
-        h2 {
+        .logo-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #f2f2f2;
+        }
+
+        .user-info {
+            color: rgba(255,255,255,0.78);
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .btn-sair {
+            background: linear-gradient(90deg, #ff6a4d, #f04a32);
+            color: #fff;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 15px;
+            padding: 11px 18px;
+            border-radius: 14px;
+        }
+
+        .page {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 34px 28px 50px 28px;
+        }
+
+        .card {
+            background: linear-gradient(180deg, rgba(21,29,39,0.96), rgba(12,18,26,0.96));
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 24px;
+            padding: 26px;
+            box-shadow: 0 18px 45px rgba(0,0,0,0.30);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 20px;
+            margin-bottom: 18px;
+            flex-wrap: wrap;
+        }
+
+        .card-title {
+            font-size: 22px;
+            font-weight: 800;
+            margin: 0 0 8px 0;
+        }
+
+        .card-subtitle {
             margin: 0;
+            color: rgba(255,255,255,0.75);
+            font-size: 15px;
         }
 
-        .subinfo {
-            margin: 10px 0 20px 0;
-            color: #444;
+        .actions-top {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn-primary,
+        .btn-secondary {
+            border: none;
+            border-radius: 14px;
+            padding: 12px 18px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background: linear-gradient(90deg, #ff8b1f, #ff5e2f);
+            color: #111;
+            box-shadow: 0 8px 24px rgba(255, 120, 40, 0.22);
+        }
+
+        .btn-secondary {
+            background: rgba(255,255,255,0.08);
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.10);
+        }
+
+        .status-box {
+            margin: 0 0 18px 0;
+            padding: 12px 16px;
+            border-radius: 14px;
+            display: none;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .status-box.show {
+            display: block;
+        }
+
+        .status-success {
+            background: rgba(48, 180, 90, 0.16);
+            border: 1px solid rgba(48, 180, 90, 0.35);
+            color: #9df0b4;
+        }
+
+        .status-error {
+            background: rgba(255, 90, 90, 0.14);
+            border: 1px solid rgba(255, 90, 90, 0.32);
+            color: #ffb3b3;
+        }
+
+        .table-wrap {
+            width: 100%;
+            overflow-x: auto;
+            border-radius: 18px;
         }
 
         table {
             width: 100%;
+            min-width: 1300px;
             border-collapse: collapse;
-            background: white;
+            overflow: hidden;
+            border-radius: 18px;
         }
 
-        th, td {
-            padding: 12px;
-            border-bottom: 1px solid #ddd;
+        thead th {
+            background: #07111c;
+            color: #dce8f3;
             text-align: left;
+            padding: 16px 14px;
+            font-size: 14px;
+            font-weight: 800;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
         }
 
-        th {
-            background: #1f2937;
-            color: white;
+        tbody td {
+            padding: 14px;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            vertical-align: middle;
+            font-size: 14px;
+            color: #f3f5f7;
         }
 
-        select {
-            padding: 8px;
-            border-radius: 6px;
-            border: 1px solid #ccc;
+        tbody tr:hover {
+            background: rgba(255,255,255,0.03);
         }
 
-        button {
-            padding: 8px 14px;
-            border: none;
-            border-radius: 8px;
-            background: #2563eb;
-            color: white;
-            cursor: pointer;
+        .col-matricula { min-width: 120px; }
+        .col-colaborador { min-width: 280px; }
+        .col-cargo { min-width: 170px; }
+        .col-area { min-width: 160px; }
+        .col-cidade { min-width: 150px; }
+        .col-turno { min-width: 110px; }
+        .col-status { min-width: 180px; }
+        .col-obs { min-width: 220px; }
+
+        .badge-des {
+            display: inline-block;
+            margin-top: 8px;
+            padding: 4px 10px;
+            border-radius: 999px;
+            background: rgba(255, 110, 110, 0.16);
+            border: 1px solid rgba(255, 110, 110, 0.35);
+            color: #ffb9b9;
+            font-size: 12px;
+            font-weight: 700;
         }
 
-        button:hover {
-            opacity: 0.9;
+        .row-desligado {
+            background: rgba(120, 25, 25, 0.16);
         }
 
-        .vazio {
-            padding: 20px;
-            background: #fff3cd;
-            border-radius: 10px;
-            color: #856404;
+        .status-select,
+        .obs-input {
+            width: 100%;
+            background: #111a24;
+            color: #ffffff;
+            border: 1px solid rgba(255,255,255,0.10);
+            border-radius: 12px;
+            padding: 11px 12px;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .status-select:focus,
+        .obs-input:focus {
+            border-color: rgba(255, 149, 51, 0.8);
+            box-shadow: 0 0 0 3px rgba(255, 140, 50, 0.12);
+        }
+
+        .tfoot-actions {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 18px;
+        }
+
+        .footer-note {
+            margin-top: 14px;
+            color: rgba(255,255,255,0.60);
+            font-size: 13px;
+        }
+
+        .empty-box {
+            padding: 18px;
+            border-radius: 16px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.08);
+            color: rgba(255,255,255,0.75);
+        }
+
+        @media (max-width: 900px) {
+            .topbar-inner,
+            .card-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .topbar-right {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .actions-top,
+            .tfoot-actions {
+                width: 100%;
+            }
+
+            .btn-primary,
+            .btn-secondary {
+                width: 100%;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="topo">
-            <div>
-                <h2>📋 Realizar Presença</h2>
-                <div class="subinfo">
-                    Supervisor: <strong>{{ supervisor }}</strong><br>
-                    Coluna do dia: <strong>{{ coluna_dia or 'Não encontrada' }}</strong>
-                </div>
+    <header class="topbar">
+        <div class="topbar-inner">
+            <div class="topbar-left">
+                <a class="btn-menu" href="/operacao">Voltar ao Menu</a>
+                <div class="logo-title">📣 Sistema de Presença</div>
             </div>
-            <div>
-                <a href="/operacao">Voltar</a>
+
+            <div class="topbar-right">
+                <div class="user-info">
+                    {{ supervisor }}
+                    {% if usuario %}
+                        ({{ usuario }})
+                    {% endif %}
+                </div>
+                <a class="btn-sair" href="/logout">Sair</a>
             </div>
         </div>
+    </header>
 
-        {% if colaboradores %}
-        <table>
-            <thead>
-                <tr>
-                    <th>Matrícula</th>
-                    <th>Colaborador</th>
-                    <th>Turno</th>
-                    <th>Linha</th>
-                    <th>Ponto</th>
-                    <th>Status de hoje</th>
-                    <th>Ação</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for c in colaboradores %}
-                <tr>
-                    <td>{{ c.matricula }}</td>
-                    <td>{{ c.colaborador }}</td>
-                    <td>{{ c.turno }}</td>
-                    <td>{{ c.linha }}</td>
-                    <td>{{ c.ponto }}</td>
-                    <td>
-                        <select id="status-{{ c.matricula }}">
-                            <option value="">Selecione</option>
-                            {% for s in status_opcoes %}
-                                <option value="{{ s }}" {% if c.status_hoje == s %}selected{% endif %}>{{ s }}</option>
-                            {% endfor %}
-                        </select>
-                    </td>
-                    <td>
-                        <button onclick="salvarPresenca('{{ c.matricula }}')">Salvar</button>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        {% else %}
-            <div class="vazio">
+    <main class="page">
+        <section class="card">
+            <div class="card-header">
+                <div>
+                    <h1 class="card-title">Marcar Presença</h1>
+                    <p class="card-subtitle">
+                        Realize a presença do dia <strong>{{ data_hoje }}</strong> e clique em <strong>Salvar Presenças</strong>.
+                    </p>
+                    <p class="card-subtitle">
+                        Coluna encontrada: <strong>{{ coluna_dia or 'Não encontrada' }}</strong>
+                    </p>
+                </div>
+
+                <div class="actions-top">
+                    <button class="btn-secondary" type="button" onclick="preencherTodos('P')">Marcar todos como P</button>
+                    <button class="btn-primary" type="button" onclick="salvarTodasPresencas()">Salvar Presenças</button>
+                </div>
+            </div>
+
+            <div id="statusBox" class="status-box"></div>
+
+            {% if colaboradores %}
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th class="col-matricula">Matrícula</th>
+                            <th class="col-colaborador">Colaborador</th>
+                            <th class="col-cargo">Cargo</th>
+                            <th class="col-area">Área</th>
+                            <th class="col-cidade">Cidade</th>
+                            <th class="col-turno">Turno</th>
+                            <th class="col-status">Status</th>
+                            <th class="col-obs">Obs.</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for c in colaboradores %}
+                        <tr class="{% if c.desligado %}row-desligado{% endif %}">
+                            <td>
+                                <strong>{{ c.matricula }}</strong>
+                                {% if c.desligado %}
+                                    <div class="badge-des">DES</div>
+                                {% endif %}
+                            </td>
+                            <td>{{ c.colaborador }}</td>
+                            <td>{{ c.cargo }}</td>
+                            <td>{{ c.area }}</td>
+                            <td>{{ c.cidade }}</td>
+                            <td>{{ c.turno }}</td>
+                            <td>
+                                <select class="status-select" id="status-{{ c.matricula }}">
+                                    <option value="">Selecione</option>
+                                    {% for s in status_opcoes %}
+                                        <option value="{{ s }}" {% if c.status_hoje == s %}selected{% endif %}>{{ s }}</option>
+                                    {% endfor %}
+                                </select>
+                            </td>
+                            <td>
+                                <input
+                                    class="obs-input"
+                                    type="text"
+                                    id="obs-{{ c.matricula }}"
+                                    placeholder="Obs. (opcional)"
+                                    value="{{ c.obs_hoje or '' }}"
+                                >
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="tfoot-actions">
+                <button class="btn-primary" type="button" onclick="salvarTodasPresencas()">Salvar Presenças</button>
+            </div>
+
+            <div class="footer-note">
+                Dica: você pode preencher todos os status e salvar uma única vez ao final.
+            </div>
+            {% else %}
+            <div class="empty-box">
                 Nenhum colaborador encontrado para este supervisor.
             </div>
-        {% endif %}
-    </div>
+            {% endif %}
+        </section>
+    </main>
 
     <script>
-        async function salvarPresenca(matricula) {
-            const status = document.getElementById(`status-${matricula}`).value;
+        const matriculas = {{ matriculas|tojson }};
 
-            if (!status) {
-                alert("Selecione um status.");
+        function mostrarMensagem(tipo, texto) {
+            const box = document.getElementById("statusBox");
+            box.className = "status-box show";
+            box.textContent = texto;
+
+            if (tipo === "success") {
+                box.classList.add("status-success");
+            } else {
+                box.classList.add("status-error");
+            }
+
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+
+        function preencherTodos(status) {
+            for (const matricula of matriculas) {
+                const select = document.getElementById(`status-${matricula}`);
+                if (select && !select.value) {
+                    select.value = status;
+                }
+            }
+        }
+
+        async function salvarTodasPresencas() {
+            const presencas = [];
+
+            for (const matricula of matriculas) {
+                const statusEl = document.getElementById(`status-${matricula}`);
+                const obsEl = document.getElementById(`obs-${matricula}`);
+
+                if (!statusEl) continue;
+
+                const status = statusEl.value.trim();
+                const obs = obsEl ? obsEl.value.trim() : "";
+
+                if (status) {
+                    presencas.push({
+                        matricula: matricula,
+                        status: status,
+                        obs: obs
+                    });
+                }
+            }
+
+            if (presencas.length === 0) {
+                mostrarMensagem("error", "Nenhum status foi preenchido.");
                 return;
             }
 
-            const res = await fetch("/salvar_presenca", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    matricula: matricula,
-                    status: status
-                })
+            const botoes = document.querySelectorAll(".btn-primary");
+            botoes.forEach(btn => {
+                btn.disabled = true;
+                btn.textContent = "Salvando...";
             });
 
-            const json = await res.json();
-            alert(json.msg);
+            try {
+                const resposta = await fetch("/salvar_presencas", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ presencas })
+                });
+
+                const json = await resposta.json();
+
+                if (json.ok) {
+                    mostrarMensagem("success", json.msg || "Presenças salvas com sucesso.");
+                } else {
+                    mostrarMensagem("error", json.msg || "Erro ao salvar presenças.");
+                }
+            } catch (erro) {
+                mostrarMensagem("error", "Erro de comunicação ao salvar presenças.");
+            } finally {
+                botoes.forEach(btn => {
+                    btn.disabled = false;
+                    btn.textContent = "Salvar Presenças";
+                });
+            }
         }
     </script>
 </body>
