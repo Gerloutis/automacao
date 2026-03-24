@@ -79,7 +79,7 @@ function wire(){
     },
     btnDES: {
       el: $("#btnDES"),
-      tasks: ["des_para_qhc"]
+      tasks: ["des_qhc","act_quadro_fy"]
     },
     btnTO: {
       el: $("#btnTO"),

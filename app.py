@@ -9,6 +9,7 @@ import threading
 import time
 from contextlib import redirect_stdout
 from datetime import date, timedelta
+from datetime import datetime
 
 load_dotenv()
 
@@ -21,6 +22,12 @@ DATABASE_URL = os.getenv("DATABASE_URL")
 def get_connection():
     return psycopg2.connect(DATABASE_URL, sslmode="require")
 
+def usuario_supervisor():
+    return (
+        "usuario" in session and
+        session.get("tipo") == "operacao" and
+        str(session.get("cargo", "")).lower() == "supervisor"
+    )
 # 🔗 SQLAlchemy (pandas)
 engine = create_engine(DATABASE_URL)
 
@@ -72,7 +79,157 @@ def ensure_gc():
 def usuario_planejamento():
     return session.get("usuario") == "gerle" and session.get("tipo") == "planejamento"
 
+# =========================
+# PRESENÇA
+# =========================
 
+PLANILHA_PRESENCA_ID = "1Qv9mI_vo0yA987Kabn-bUM6XaQq2IOs4dLZKAzwU8P8"
+
+MESES_PT = {
+    1: "JANEIRO",
+    2: "FEVEREIRO",
+    3: "MARÇO",
+    4: "ABRIL",
+    5: "MAIO",
+    6: "JUNHO",
+    7: "JULHO",
+    8: "AGOSTO",
+    9: "SETEMBRO",
+    10: "OUTUBRO",
+    11: "NOVEMBRO",
+    12: "DEZEMBRO"
+}
+
+STATUS_PRESENCA = ["P", "F", "AT", "PA", "HE", "FC", "FBH", "S", "AF", "FE", "DES"]
+
+def nome_aba_mes_atual():
+    hoje = datetime.now()
+    return MESES_PT[hoje.month]
+
+def prefixo_coluna_hoje():
+    hoje = datetime.now()
+    return hoje.strftime("%d/%m")
+
+def carregar_presenca_supervisor(nome_supervisor):
+    gc = ensure_gc()
+    sh = gc.open_by_key(PLANILHA_PRESENCA_ID)
+    ws = sh.worksheet(nome_aba_mes_atual())
+
+    valores = ws.get_all_values()
+
+    if not valores or len(valores) < 2:
+        return pd.DataFrame(), ws, None
+
+    cabecalho = [str(c).strip() for c in valores[0]]
+    linhas = valores[1:]
+
+    # Deixa os nomes das colunas únicos
+    cabecalho_unico = []
+    contadores = {}
+
+    for col in cabecalho:
+        nome = col if col else "COLUNA_VAZIA"
+
+        if nome in contadores:
+            contadores[nome] += 1
+            nome = f"{nome}_{contadores[nome]}"
+        else:
+            contadores[nome] = 0
+
+        cabecalho_unico.append(nome)
+
+    df = pd.DataFrame(linhas, columns=cabecalho_unico)
+
+    if df.empty:
+        return df, ws, None
+
+    if "SUPERVISOR" not in df.columns:
+        raise ValueError("Coluna SUPERVISOR não encontrada na planilha.")
+
+    nome_supervisor = str(nome_supervisor).strip().upper()
+    df["SUPERVISOR"] = df["SUPERVISOR"].astype(str).str.strip().str.upper()
+
+    filtrado = df[df["SUPERVISOR"] == nome_supervisor].copy()
+
+    coluna_dia = None
+    prefixo = prefixo_coluna_hoje()
+
+    for col in filtrado.columns:
+        if str(col).startswith(prefixo):
+            coluna_dia = col
+            break
+
+    return filtrado, ws, coluna_dia
+
+@app.route("/salvar_presencas", methods=["POST"])
+def salvar_presencas():
+    if not usuario_supervisor():
+        return jsonify({"ok": False, "msg": "Não autorizado."}), 401
+
+    try:
+        dados = request.get_json(force=True)
+        presencas = dados.get("presencas", [])
+
+        if not presencas:
+            return jsonify({"ok": False, "msg": "Nenhuma presença recebida."}), 400
+
+        nome_supervisor = session.get("nome")
+        df, ws, coluna_dia = carregar_presenca_supervisor(nome_supervisor)
+
+        if df.empty:
+            return jsonify({"ok": False, "msg": "Nenhum colaborador encontrado."}), 404
+
+        if not coluna_dia:
+            return jsonify({"ok": False, "msg": "Coluna do dia atual não encontrada."}), 404
+
+        todos_valores = ws.get_all_values()
+        cabecalho = [str(c).strip() for c in todos_valores[0]]
+
+        if "MATRÍCULA" not in cabecalho:
+            return jsonify({"ok": False, "msg": "Coluna MATRÍCULA não encontrada."}), 404
+
+        if "SUPERVISOR" not in cabecalho:
+            return jsonify({"ok": False, "msg": "Coluna SUPERVISOR não encontrada."}), 404
+
+        col_idx = cabecalho.index(coluna_dia) + 1
+        idx_matricula = cabecalho.index("MATRÍCULA")
+        idx_supervisor = cabecalho.index("SUPERVISOR")
+
+        linhas_por_matricula = {}
+
+        for i, linha in enumerate(todos_valores[1:], start=2):
+            mat = str(linha[idx_matricula]).strip() if idx_matricula < len(linha) else ""
+            sup = str(linha[idx_supervisor]).strip().upper() if idx_supervisor < len(linha) else ""
+
+            if mat and sup == str(nome_supervisor).strip().upper():
+                linhas_por_matricula[mat] = i
+
+        atualizacoes = 0
+
+        for item in presencas:
+            matricula = str(item.get("matricula", "")).strip()
+            status = str(item.get("status", "")).strip().upper()
+
+            if not matricula or not status:
+                continue
+
+            if status not in STATUS_PRESENCA:
+                continue
+
+            linha_planilha = linhas_por_matricula.get(matricula)
+            if not linha_planilha:
+                continue
+
+            ws.update_cell(linha_planilha, col_idx, status)
+            atualizacoes += 1
+
+        return jsonify({
+            "ok": True,
+            "msg": f"{atualizacoes} presença(s) salva(s) com sucesso."
+        })
+
+    except Exception as e:
+        return jsonify({"ok": False, "msg": str(e)}), 500
 # =========================
 # LOGIN
 # =========================
@@ -130,7 +287,7 @@ def run():
         datas = _unique_preservando_ordem(datas)
 
     order = [
-        "des_para_qhc",
+        "des_qhc",
         "qhc_base_mae",
         "act_quadro_fy",
         "to_planejamento",
@@ -160,7 +317,7 @@ def run():
                             else:
                                 print("[ERRO] processar_dia não encontrada.")
 
-                        elif t == "des_para_qhc":
+                        elif t == "des_qhc":
                             if des_para_qhc:
                                 des_para_qhc(d)
                             else:
@@ -261,23 +418,26 @@ def run():
     
 @app.route("/entrar", methods=["POST"])
 def entrar():
-
-    usuario = request.form["usuario"]
-    senha = request.form["senha"]
+    usuario = request.form["usuario"].strip()
+    senha = request.form["senha"].strip()
 
     # LOGIN ESPECIAL PARA PLANEJAMENTO
     if usuario == "gerle" and senha == "123":
         session["usuario"] = usuario
         session["tipo"] = "planejamento"
+        session["cargo"] = "planejamento"
+        session["nome"] = "Gerle"
         return redirect(url_for("planejamento"))
 
     conn = get_connection()
     cursor = conn.cursor()
 
-    cursor.execute(
-        "SELECT * FROM login WHERE usuario = %s AND senha = %s",
-        (usuario, senha)
-    )
+    cursor.execute("""
+        SELECT id, usuario, senha, cargo, nome, matricula
+        FROM perfil
+        WHERE usuario = %s AND senha = %s
+        LIMIT 1
+    """, (usuario, senha))
 
     resultado = cursor.fetchone()
 
@@ -285,11 +445,21 @@ def entrar():
     conn.close()
 
     if resultado:
-        session["usuario"] = usuario
+        session["usuario"] = resultado[1]
         session["tipo"] = "operacao"
+        session["cargo"] = resultado[3]
+        session["nome"] = resultado[4]
+        session["matricula"] = resultado[5]
+
+        cargo = (resultado[3] or "").strip().lower()
+
+        if cargo == "supervisor":
+            return redirect(url_for("operacao"))
+
         return redirect(url_for("operacao"))
 
     return "Usuário ou senha inválidos"
+
 # =========================
 # PROTEÇÃO
 # =========================
@@ -380,9 +550,46 @@ def importar_colaboradores():
 # =========================
 @app.route("/presenca")
 def presenca():
-    return "<h1>Tela de Presença</h1>"
+    if not usuario_supervisor():
+        return redirect(url_for("login"))
 
+    try:
+        nome_supervisor = session.get("nome")
+        df, ws, coluna_dia = carregar_presenca_supervisor(nome_supervisor)
 
+        colaboradores = []
+        if not df.empty:
+            for _, row in df.iterrows():
+                status_hoje = row.get(coluna_dia, "") if coluna_dia else ""
+
+                colaboradores.append({
+                    "matricula": str(row.get("MATRÍCULA", "")).strip(),
+                    "colaborador": str(row.get("COLABORADOR", "")).strip(),
+                    "cargo": str(row.get("CARGO", "")).strip(),
+                    "area": str(row.get("ÁREA", "")).strip(),
+                    "cidade": str(row.get("CIDADE", "")).strip(),
+                    "turno": str(row.get("TURNO", "")).strip(),
+                    "status_hoje": str(status_hoje).strip(),
+                    "obs_hoje": "",
+                    "desligado": str(row.get("STATUS", "")).strip().upper() == "DESLIGADO"
+                })
+
+        matriculas = [c["matricula"] for c in colaboradores if c["matricula"]]
+
+        return render_template(
+            "presenca.html",
+            supervisor=nome_supervisor,
+            usuario=session.get("usuario"),
+            coluna_dia=coluna_dia,
+            data_hoje=datetime.now().strftime("%d/%m/%Y"),
+            colaboradores=colaboradores,
+            matriculas=matriculas,
+            status_opcoes=STATUS_PRESENCA
+        )
+
+    except Exception as e:
+        return f"Erro ao carregar presença: {e}"
+        
 @app.route("/insumos")
 def insumos():
     return "<h1>Tela de Insumos</h1>"
@@ -401,6 +608,7 @@ def logout():
 # START
 # =========================
 if __name__ == "__main__":
+    print("Hello")
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
 
 

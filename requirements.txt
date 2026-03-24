@@ -1,12 +1,11 @@
-flask
+Flask
 gspread
 google-auth
-psycopg2
-dotenv
+google-auth-oauthlib
+gspread-dataframe
+python-dotenv
 pandas
 sqlalchemy
 openpyxl
 numpy
-google-auth
-google-auth-oauthlib
-gspread-dataframe
+psycopg2-binary
