@@ -90,6 +90,7 @@
             border-radius: 24px;
             padding: 26px;
             box-shadow: 0 18px 45px rgba(0,0,0,0.30);
+            position: relative;
         }
 
         .card-header {
@@ -120,7 +121,8 @@
         }
 
         .btn-primary,
-        .btn-secondary {
+        .btn-secondary,
+        .btn-close-panel {
             border: none;
             border-radius: 14px;
             padding: 12px 18px;
@@ -135,7 +137,8 @@
             box-shadow: 0 8px 24px rgba(255, 120, 40, 0.22);
         }
 
-        .btn-secondary {
+        .btn-secondary,
+        .btn-close-panel {
             background: rgba(255,255,255,0.08);
             color: #fff;
             border: 1px solid rgba(255,255,255,0.10);
@@ -166,54 +169,72 @@
             color: #ffb3b3;
         }
 
-        .table-wrap {
-            width: 100%;
-            overflow-x: auto;
+        .empty-box {
+            padding: 18px;
+            border-radius: 16px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.08);
+            color: rgba(255,255,255,0.75);
+        }
+
+        .lista-presenca {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .linha-colaborador {
+            display: grid;
+            grid-template-columns: minmax(240px, 320px) 1fr 64px;
+            align-items: center;
+            gap: 16px;
+            padding: 14px 16px;
             border-radius: 18px;
-        }
-
-        table {
-            width: 100%;
-            min-width: 1300px;
-            border-collapse: collapse;
-            overflow: hidden;
-            border-radius: 18px;
-        }
-
-        thead th {
-            background: #07111c;
-            color: #dce8f3;
-            text-align: left;
-            padding: 16px 14px;
-            font-size: 14px;
-            font-weight: 800;
-            border-bottom: 1px solid rgba(255,255,255,0.08);
-        }
-
-        tbody td {
-            padding: 14px;
-            border-bottom: 1px solid rgba(255,255,255,0.06);
-            vertical-align: middle;
-            font-size: 14px;
-            color: #f3f5f7;
-        }
-
-        tbody tr:hover {
             background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.06);
+            transition: 0.2s ease;
         }
 
-        .col-matricula { min-width: 120px; }
-        .col-colaborador { min-width: 280px; }
-        .col-cargo { min-width: 170px; }
-        .col-area { min-width: 160px; }
-        .col-cidade { min-width: 150px; }
-        .col-turno { min-width: 110px; }
-        .col-status { min-width: 180px; }
-        .col-obs { min-width: 220px; }
+        .linha-colaborador:hover {
+            background: rgba(255,255,255,0.045);
+            border-color: rgba(255,255,255,0.10);
+        }
+
+        .linha-colaborador.row-desligado {
+            background: rgba(120, 25, 25, 0.16);
+        }
+
+        .info-principal {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            min-width: 0;
+        }
+
+        .matricula-badge {
+            display: inline-flex;
+            align-items: center;
+            width: fit-content;
+            padding: 6px 10px;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.07);
+            border: 1px solid rgba(255,255,255,0.08);
+            font-size: 13px;
+            font-weight: 800;
+            color: #ffffff;
+        }
+
+        .nome-colaborador {
+            font-size: 16px;
+            font-weight: 700;
+            color: #f7f8fa;
+            line-height: 1.2;
+            word-break: break-word;
+        }
 
         .badge-des {
             display: inline-block;
-            margin-top: 8px;
+            width: fit-content;
             padding: 4px 10px;
             border-radius: 999px;
             background: rgba(255, 110, 110, 0.16);
@@ -223,26 +244,54 @@
             font-weight: 700;
         }
 
-        .row-desligado {
-            background: rgba(120, 25, 25, 0.16);
+        .status-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: flex-start;
         }
 
-        .status-select,
-        .obs-input {
-            width: 100%;
+        .status-pill {
+            min-width: 42px;
+            height: 42px;
+            border-radius: 999px;
+            border: 1px solid rgba(255,255,255,0.10);
             background: #111a24;
             color: #ffffff;
-            border: 1px solid rgba(255,255,255,0.10);
-            border-radius: 12px;
-            padding: 11px 12px;
-            font-size: 14px;
-            outline: none;
+            font-size: 12px;
+            font-weight: 800;
+            cursor: pointer;
+            padding: 0 12px;
+            transition: 0.2s ease;
         }
 
-        .status-select:focus,
-        .obs-input:focus {
-            border-color: rgba(255, 149, 51, 0.8);
-            box-shadow: 0 0 0 3px rgba(255, 140, 50, 0.12);
+        .status-pill:hover {
+            transform: translateY(-1px);
+            border-color: rgba(255, 149, 51, 0.7);
+            background: rgba(255, 139, 31, 0.15);
+        }
+
+        .status-pill.ativo {
+            background: linear-gradient(90deg, #ff8b1f, #ff5e2f);
+            color: #111;
+            border-color: transparent;
+            box-shadow: 0 6px 18px rgba(255, 120, 40, 0.20);
+        }
+
+        .btn-eye {
+            width: 46px;
+            height: 46px;
+            border-radius: 14px;
+            border: 1px solid rgba(255,255,255,0.10);
+            background: rgba(255,255,255,0.06);
+            color: #ffffff;
+            font-size: 20px;
+            cursor: pointer;
+            transition: 0.2s ease;
+        }
+
+        .btn-eye:hover {
+            background: rgba(255,255,255,0.12);
         }
 
         .tfoot-actions {
@@ -257,12 +306,132 @@
             font-size: 13px;
         }
 
-        .empty-box {
-            padding: 18px;
+        .overlay-detalhes {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.55);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s ease;
+            z-index: 999;
+        }
+
+        .overlay-detalhes.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .painel-detalhes {
+            position: fixed;
+            top: 0;
+            right: -430px;
+            width: 420px;
+            max-width: calc(100vw - 24px);
+            height: 100vh;
+            background: linear-gradient(180deg, #0f1721 0%, #0b1118 100%);
+            border-left: 1px solid rgba(255,255,255,0.08);
+            box-shadow: -18px 0 40px rgba(0,0,0,0.35);
+            z-index: 1000;
+            transition: right 0.28s ease;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .painel-detalhes.show {
+            right: 0;
+        }
+
+        .painel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            padding: 22px 22px 16px;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+        }
+
+        .painel-header h2 {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 800;
+        }
+
+        .painel-body {
+            padding: 22px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .detail-card {
             border-radius: 16px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.06);
+            padding: 14px 16px;
+        }
+
+        .detail-label {
+            display: block;
+            margin-bottom: 6px;
+            color: rgba(255,255,255,0.58);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            font-weight: 700;
+        }
+
+        .detail-value {
+            color: #f4f6f8;
+            font-size: 15px;
+            font-weight: 700;
+            word-break: break-word;
+        }
+
+        .stats-cards {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .card-stat {
+            padding: 14px;
+            border-radius: 12px;
+            text-align: center;
+            font-weight: bold;
             background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.08);
-            color: rgba(255,255,255,0.75);
+        }
+
+        .card-stat span {
+            display: block;
+            font-size: 12px;
+            opacity: 0.7;
+        }
+
+        .card-stat strong {
+            font-size: 20px;
+        }
+
+        /* cores */
+        .green { background: rgba(0,200,83,0.15); color: #00c853; }
+        .red { background: rgba(255,82,82,0.15); color: #ff5252; }
+        .yellow { background: rgba(255,193,7,0.15); color: #ffc107; }
+        .blue { background: rgba(33,150,243,0.15); color: #2196f3; }
+
+        @media (max-width: 1100px) {
+            .linha-colaborador {
+                grid-template-columns: 1fr;
+            }
+
+            .status-actions {
+                justify-content: flex-start;
+            }
+
+            .btn-eye {
+                width: 100%;
+                height: 42px;
+            }
         }
 
         @media (max-width: 900px) {
@@ -285,6 +454,14 @@
             .btn-primary,
             .btn-secondary {
                 width: 100%;
+            }
+
+            .page {
+                padding: 24px 16px 40px 16px;
+            }
+
+            .card {
+                padding: 18px;
             }
         }
     </style>
@@ -331,55 +508,44 @@
             <div id="statusBox" class="status-box"></div>
 
             {% if colaboradores %}
-            <div class="table-wrap">
-                <table>
-                    <thead>
-                        <tr>
-                            <th class="col-matricula">Matrícula</th>
-                            <th class="col-colaborador">Colaborador</th>
-                            <th class="col-cargo">Cargo</th>
-                            <th class="col-area">Área</th>
-                            <th class="col-cidade">Cidade</th>
-                            <th class="col-turno">Turno</th>
-                            <th class="col-status">Status</th>
-                            <th class="col-obs">Obs.</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for c in colaboradores %}
-                        <tr class="{% if c.desligado %}row-desligado{% endif %}">
-                            <td>
-                                <strong>{{ c.matricula }}</strong>
-                                {% if c.desligado %}
-                                    <div class="badge-des">DES</div>
-                                {% endif %}
-                            </td>
-                            <td>{{ c.colaborador }}</td>
-                            <td>{{ c.cargo }}</td>
-                            <td>{{ c.area }}</td>
-                            <td>{{ c.cidade }}</td>
-                            <td>{{ c.turno }}</td>
-                            <td>
-                                <select class="status-select" id="status-{{ c.matricula }}">
-                                    <option value="">Selecione</option>
-                                    {% for s in status_opcoes %}
-                                        <option value="{{ s }}" {% if c.status_hoje == s %}selected{% endif %}>{{ s }}</option>
-                                    {% endfor %}
-                                </select>
-                            </td>
-                            <td>
-                                <input
-                                    class="obs-input"
-                                    type="text"
-                                    id="obs-{{ c.matricula }}"
-                                    placeholder="Obs. (opcional)"
-                                    value="{{ c.obs_hoje or '' }}"
-                                >
-                            </td>
-                        </tr>
+            <div class="lista-presenca">
+                {% for c in colaboradores %}
+                <div
+                    class="linha-colaborador {% if c.desligado %}row-desligado{% endif %}"
+                    data-matricula="{{ c.matricula }}"
+                >
+                    <div class="info-principal">
+                        <span class="matricula-badge">{{ c.matricula }}</span>
+                        <div class="nome-colaborador">{{ c.colaborador }}</div>
+                        {% if c.desligado %}
+                            <span class="badge-des">DESLIGADO</span>
+                        {% endif %}
+                    </div>
+
+                    <div class="status-actions">
+                        {% for s in status_opcoes %}
+                        <button
+                            type="button"
+                            class="status-pill {% if c.status_hoje == s %}ativo{% endif %}"
+                            data-matricula="{{ c.matricula }}"
+                            data-status="{{ s }}"
+                            onclick="selecionarStatus('{{ c.matricula }}', '{{ s }}', this)"
+                        >
+                            {{ s }}
+                        </button>
                         {% endfor %}
-                    </tbody>
-                </table>
+                    </div>
+
+                    <div>
+                        <button
+                            type="button"
+                            class="btn-eye"
+                            onclick="abrirDetalhes('{{ c.matricula }}')"
+                            title="Ver detalhes"
+                        >👁</button>
+                    </div>
+                </div>
+                {% endfor %}
             </div>
 
             <div class="tfoot-actions">
@@ -387,7 +553,7 @@
             </div>
 
             <div class="footer-note">
-                Dica: você pode preencher todos os status e salvar uma única vez ao final.
+                Dica: marque rapidamente a presença pelos botões e use o olho para consultar detalhes do colaborador.
             </div>
             {% else %}
             <div class="empty-box">
@@ -397,8 +563,26 @@
         </section>
     </main>
 
+    <div id="overlayDetalhes" class="overlay-detalhes" onclick="fecharDetalhes()"></div>
+
+    <aside id="painelDetalhes" class="painel-detalhes" aria-hidden="true">
+        <div class="painel-header">
+            <h2>Detalhes do colaborador</h2>
+            <button class="btn-close-panel" type="button" onclick="fecharDetalhes()">Fechar</button>
+        </div>
+        <div class="painel-body" id="conteudoDetalhes"></div>
+    </aside>
+
     <script>
         const matriculas = {{ matriculas|tojson }};
+        const colaboradores = {{ colaboradores|tojson }};
+        const presencasMap = {};
+
+        colaboradores.forEach(colaborador => {
+            if (colaborador.status_hoje) {
+                presencasMap[colaborador.matricula] = colaborador.status_hoje;
+            }
+        });
 
         function mostrarMensagem(tipo, texto) {
             const box = document.getElementById("statusBox");
@@ -414,52 +598,154 @@
             window.scrollTo({ top: 0, behavior: "smooth" });
         }
 
+        function selecionarStatus(matricula, status, botao) {
+            presencasMap[matricula] = status;
+
+            const linha = botao.closest('.linha-colaborador');
+            if (!linha) return;
+
+            linha.querySelectorAll('.status-pill').forEach(btn => {
+                btn.classList.remove('ativo');
+            });
+
+            botao.classList.add('ativo');
+        }
+
         function preencherTodos(status) {
             for (const matricula of matriculas) {
-                const select = document.getElementById(`status-${matricula}`);
-                if (select && !select.value) {
-                    select.value = status;
+                const botao = document.querySelector(`.status-pill[data-matricula="${matricula}"][data-status="${status}"]`);
+                if (botao) {
+                    selecionarStatus(matricula, status, botao);
                 }
             }
         }
+
+        function abrirDetalhes(matricula) {
+            const colaborador = colaboradores.find(c => String(c.matricula) === String(matricula));
+            if (!colaborador) return;
+
+            const stats = colaborador.stats_mes || {};
+
+            const presencas = stats.presencas ?? 0;
+            const faltas = stats.faltas ?? 0;
+            const atestados = stats.atestados ?? 0;
+            const percentual = stats.percentual_presenca ?? 0;
+
+            const statusHoje = presencasMap[colaborador.matricula] || colaborador.status_hoje || '-';
+
+            const conteudo = document.getElementById('conteudoDetalhes');
+            conteudo.innerHTML = `
+                <div class="detail-card">
+                    <span class="detail-label">Matrícula</span>
+                    <div class="detail-value">${colaborador.matricula || '-'}</div>
+                </div>
+
+                <div class="detail-card">
+                    <span class="detail-label">Colaborador</span>
+                    <div class="detail-value">${colaborador.colaborador || '-'}</div>
+                </div>
+
+                <div class="detail-card">
+                    <span class="detail-label">Cargo</span>
+                    <div class="detail-value">${colaborador.cargo || '-'}</div>
+                </div>
+
+                <div class="detail-card">
+                    <span class="detail-label">Área</span>
+                    <div class="detail-value">${colaborador.area || '-'}</div>
+                </div>
+
+                <div class="detail-card">
+                    <span class="detail-label">Cidade</span>
+                    <div class="detail-value">${colaborador.cidade || '-'}</div>
+                </div>
+
+                <div class="detail-card">
+                    <span class="detail-label">Turno</span>
+                    <div class="detail-value">${colaborador.turno || '-'}</div>
+                </div>
+
+                <div class="detail-card">
+                    <span class="detail-label">Status de hoje</span>
+                    <div class="detail-value">${statusHoje}</div>
+                </div>
+
+                <div class="detail-card">
+                    <span class="detail-label">Situação</span>
+                    <div class="detail-value">${colaborador.desligado ? 'Desligado' : 'Ativo'}</div>
+                </div>
+
+                <div class="stats-cards">
+                    <div class="card-stat green">
+                        <span>P</span>
+                        <strong>${presencas}</strong>
+                    </div>
+
+                    <div class="card-stat red">
+                        <span>F</span>
+                        <strong>${faltas}</strong>
+                    </div>
+
+                    <div class="card-stat yellow">
+                        <span>AT</span>
+                        <strong>${atestados}</strong>
+                    </div>
+
+                    <div class="card-stat blue">
+                        <span>%</span>
+                        <strong>${percentual}%</strong>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('overlayDetalhes').classList.add('show');
+            document.getElementById('painelDetalhes').classList.add('show');
+            document.getElementById('painelDetalhes').setAttribute('aria-hidden', 'false');
+        }
+
+        function fecharDetalhes() {
+            document.getElementById('overlayDetalhes').classList.remove('show');
+            document.getElementById('painelDetalhes').classList.remove('show');
+            document.getElementById('painelDetalhes').setAttribute('aria-hidden', 'true');
+        }
+
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                fecharDetalhes();
+            }
+        });
 
         async function salvarTodasPresencas() {
             const presencas = [];
 
             for (const matricula of matriculas) {
-                const statusEl = document.getElementById(`status-${matricula}`);
-                const obsEl = document.getElementById(`obs-${matricula}`);
-
-                if (!statusEl) continue;
-
-                const status = statusEl.value.trim();
-                const obs = obsEl ? obsEl.value.trim() : "";
+                const status = (presencasMap[matricula] || '').trim();
 
                 if (status) {
                     presencas.push({
                         matricula: matricula,
                         status: status,
-                        obs: obs
+                        obs: ''
                     });
                 }
             }
 
             if (presencas.length === 0) {
-                mostrarMensagem("error", "Nenhum status foi preenchido.");
+                mostrarMensagem('error', 'Nenhum status foi preenchido.');
                 return;
             }
 
-            const botoes = document.querySelectorAll(".btn-primary");
-            botoes.forEach(btn => {
+            const botoesPrimarios = document.querySelectorAll('.btn-primary');
+            botoesPrimarios.forEach(btn => {
                 btn.disabled = true;
-                btn.textContent = "Salvando...";
+                btn.textContent = 'Salvando...';
             });
 
             try {
-                const resposta = await fetch("/salvar_presencas", {
-                    method: "POST",
+                const resposta = await fetch('/salvar_presencas', {
+                    method: 'POST',
                     headers: {
-                        "Content-Type": "application/json"
+                        'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({ presencas })
                 });
@@ -467,16 +753,16 @@
                 const json = await resposta.json();
 
                 if (json.ok) {
-                    mostrarMensagem("success", json.msg || "Presenças salvas com sucesso.");
+                    mostrarMensagem('success', json.msg || 'Presenças salvas com sucesso.');
                 } else {
-                    mostrarMensagem("error", json.msg || "Erro ao salvar presenças.");
+                    mostrarMensagem('error', json.msg || 'Erro ao salvar presenças.');
                 }
             } catch (erro) {
-                mostrarMensagem("error", "Erro de comunicação ao salvar presenças.");
+                mostrarMensagem('error', 'Erro de comunicação ao salvar presenças.');
             } finally {
-                botoes.forEach(btn => {
+                botoesPrimarios.forEach(btn => {
                     btn.disabled = false;
-                    btn.textContent = "Salvar Presenças";
+                    btn.textContent = 'Salvar Presenças';
                 });
             }
         }
