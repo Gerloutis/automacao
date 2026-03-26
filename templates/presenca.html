@@ -5,23 +5,18 @@
     <title>Sistema de Presença</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        * {
-            box-sizing: border-box;
-        }
-
+        * { box-sizing: border-box; }
         body {
             margin: 0;
             font-family: Arial, Helvetica, sans-serif;
             background: linear-gradient(180deg, #05080d 0%, #0b1118 100%);
-            color: #ffffff;
+            color: #fff;
         }
-
         .topbar {
             width: 100%;
             border-bottom: 1px solid rgba(255,255,255,0.08);
             background: rgba(0, 0, 0, 0.25);
         }
-
         .topbar-inner {
             max-width: 1600px;
             margin: 0 auto;
@@ -31,68 +26,78 @@
             align-items: center;
             gap: 20px;
         }
-
-        .topbar-left {
-            display: flex;
-            align-items: center;
-            gap: 18px;
-        }
-
-        .topbar-right {
+        .topbar-left, .topbar-right {
             display: flex;
             align-items: center;
             gap: 16px;
             flex-wrap: wrap;
         }
-
-        .btn-menu {
+        .btn-menu, .btn-sair, .btn-primary, .btn-secondary, .btn-close-panel, .btn-action, .btn-ghost {
+            border: none;
+            border-radius: 14px;
+            padding: 11px 18px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .btn-menu, .btn-primary, .btn-action {
             background: linear-gradient(90deg, #ff8b1f, #ff5e2f);
             color: #111;
-            text-decoration: none;
-            font-weight: 700;
-            font-size: 16px;
-            padding: 12px 22px;
-            border-radius: 14px;
             box-shadow: 0 8px 24px rgba(255, 120, 40, 0.22);
         }
-
-        .logo-title {
-            font-size: 18px;
-            font-weight: 700;
-            color: #f2f2f2;
-        }
-
-        .user-info {
-            color: rgba(255,255,255,0.78);
-            font-size: 14px;
-            font-weight: 600;
-        }
-
         .btn-sair {
             background: linear-gradient(90deg, #ff6a4d, #f04a32);
             color: #fff;
-            text-decoration: none;
-            font-weight: 700;
-            font-size: 15px;
-            padding: 11px 18px;
-            border-radius: 14px;
         }
-
+        .btn-secondary, .btn-close-panel, .btn-ghost {
+            background: rgba(255,255,255,0.08);
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.10);
+        }
+        .logo-title { font-size: 18px; font-weight: 700; }
+        .user-info { color: rgba(255,255,255,0.78); font-size: 14px; font-weight: 600; }
+        .btn-notify {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            border: 1px solid rgba(255,255,255,0.10);
+            background: rgba(255,255,255,0.06);
+            color: #fff;
+            border-radius: 14px;
+            padding: 10px 14px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .btn-notify:hover { background: rgba(255,255,255,0.12); }
+        .notify-badge {
+            min-width: 24px;
+            height: 24px;
+            padding: 0 7px;
+            border-radius: 999px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(90deg, #ff8b1f, #ff5e2f);
+            color: #111;
+            font-size: 12px;
+            font-weight: 900;
+            box-shadow: 0 8px 18px rgba(255, 120, 40, 0.24);
+        }
         .page {
             max-width: 1600px;
             margin: 0 auto;
             padding: 34px 28px 50px 28px;
         }
-
         .card {
             background: linear-gradient(180deg, rgba(21,29,39,0.96), rgba(12,18,26,0.96));
             border: 1px solid rgba(255,255,255,0.07);
             border-radius: 24px;
             padding: 26px;
             box-shadow: 0 18px 45px rgba(0,0,0,0.30);
-            position: relative;
         }
-
         .card-header {
             display: flex;
             justify-content: space-between;
@@ -101,49 +106,9 @@
             margin-bottom: 18px;
             flex-wrap: wrap;
         }
-
-        .card-title {
-            font-size: 22px;
-            font-weight: 800;
-            margin: 0 0 8px 0;
-        }
-
-        .card-subtitle {
-            margin: 0;
-            color: rgba(255,255,255,0.75);
-            font-size: 15px;
-        }
-
-        .actions-top {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
-
-        .btn-primary,
-        .btn-secondary,
-        .btn-close-panel {
-            border: none;
-            border-radius: 14px;
-            padding: 12px 18px;
-            font-size: 15px;
-            font-weight: 700;
-            cursor: pointer;
-        }
-
-        .btn-primary {
-            background: linear-gradient(90deg, #ff8b1f, #ff5e2f);
-            color: #111;
-            box-shadow: 0 8px 24px rgba(255, 120, 40, 0.22);
-        }
-
-        .btn-secondary,
-        .btn-close-panel {
-            background: rgba(255,255,255,0.08);
-            color: #fff;
-            border: 1px solid rgba(255,255,255,0.10);
-        }
-
+        .card-title { font-size: 22px; font-weight: 800; margin: 0 0 8px 0; }
+        .card-subtitle { margin: 0; color: rgba(255,255,255,0.75); font-size: 15px; }
+        .actions-top { display: flex; gap: 12px; flex-wrap: wrap; }
         .status-box {
             margin: 0 0 18px 0;
             padding: 12px 16px;
@@ -152,23 +117,22 @@
             font-weight: 700;
             font-size: 14px;
         }
-
-        .status-box.show {
-            display: block;
-        }
-
+        .status-box.show { display: block; }
         .status-success {
             background: rgba(48, 180, 90, 0.16);
             border: 1px solid rgba(48, 180, 90, 0.35);
             color: #9df0b4;
         }
-
         .status-error {
             background: rgba(255, 90, 90, 0.14);
             border: 1px solid rgba(255, 90, 90, 0.32);
             color: #ffb3b3;
         }
-
+        .status-info {
+            background: rgba(54, 130, 255, 0.14);
+            border: 1px solid rgba(54, 130, 255, 0.32);
+            color: #b8d2ff;
+        }
         .empty-box {
             padding: 18px;
             border-radius: 16px;
@@ -176,16 +140,10 @@
             border: 1px solid rgba(255,255,255,0.08);
             color: rgba(255,255,255,0.75);
         }
-
-        .lista-presenca {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
+        .lista-presenca { display: flex; flex-direction: column; gap: 12px; }
         .linha-colaborador {
             display: grid;
-            grid-template-columns: minmax(240px, 320px) 1fr 64px;
+            grid-template-columns: minmax(220px, 290px) 1fr 122px;
             align-items: center;
             gap: 16px;
             padding: 14px 16px;
@@ -194,26 +152,14 @@
             border: 1px solid rgba(255,255,255,0.06);
             transition: 0.2s ease;
         }
-
         .linha-colaborador:hover {
             background: rgba(255,255,255,0.045);
             border-color: rgba(255,255,255,0.10);
         }
-
-        .linha-colaborador.row-desligado {
-            background: rgba(120, 25, 25, 0.16);
-        }
-
-        .info-principal {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            min-width: 0;
-        }
-
+        .linha-colaborador.row-desligado { background: rgba(120, 25, 25, 0.16); }
+        .info-principal { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
         .matricula-badge {
             display: inline-flex;
-            align-items: center;
             width: fit-content;
             padding: 6px 10px;
             border-radius: 999px;
@@ -221,17 +167,9 @@
             border: 1px solid rgba(255,255,255,0.08);
             font-size: 13px;
             font-weight: 800;
-            color: #ffffff;
         }
-
-        .nome-colaborador {
-            font-size: 16px;
-            font-weight: 700;
-            color: #f7f8fa;
-            line-height: 1.2;
-            word-break: break-word;
-        }
-
+        .nome-colaborador { font-size: 16px; font-weight: 700; line-height: 1.2; word-break: break-word; }
+        .meta-colaborador { color: rgba(255,255,255,0.70); font-size: 13px; }
         .badge-des {
             display: inline-block;
             width: fit-content;
@@ -243,14 +181,7 @@
             font-size: 12px;
             font-weight: 700;
         }
-
-        .status-actions {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            justify-content: flex-start;
-        }
-
+        .status-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-start; }
         .status-pill {
             min-width: 42px;
             height: 42px;
@@ -264,205 +195,188 @@
             padding: 0 12px;
             transition: 0.2s ease;
         }
-
         .status-pill:hover {
             transform: translateY(-1px);
             border-color: rgba(255, 149, 51, 0.7);
             background: rgba(255, 139, 31, 0.15);
         }
-
         .status-pill.ativo {
             background: linear-gradient(90deg, #ff8b1f, #ff5e2f);
             color: #111;
             border-color: transparent;
             box-shadow: 0 6px 18px rgba(255, 120, 40, 0.20);
         }
-
-        .btn-eye {
-            width: 46px;
-            height: 46px;
-            border-radius: 14px;
+        .linha-actions { display: flex; gap: 8px; justify-content: flex-end; }
+        .btn-icon {
+            width: 54px; height: 46px; border-radius: 14px;
             border: 1px solid rgba(255,255,255,0.10);
-            background: rgba(255,255,255,0.06);
-            color: #ffffff;
-            font-size: 20px;
-            cursor: pointer;
-            transition: 0.2s ease;
+            background: rgba(255,255,255,0.06); color: #fff;
+            font-size: 18px; cursor: pointer;
         }
-
-        .btn-eye:hover {
-            background: rgba(255,255,255,0.12);
-        }
-
-        .tfoot-actions {
-            display: flex;
-            justify-content: flex-end;
-            margin-top: 18px;
-        }
-
-        .footer-note {
-            margin-top: 14px;
-            color: rgba(255,255,255,0.60);
-            font-size: 13px;
-        }
-
+        .btn-icon:hover { background: rgba(255,255,255,0.12); }
+        .tfoot-actions { display: flex; justify-content: flex-end; margin-top: 18px; }
+        .footer-note { margin-top: 14px; color: rgba(255,255,255,0.60); font-size: 13px; }
         .overlay-detalhes {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.55);
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.25s ease;
-            z-index: 999;
+            position: fixed; inset: 0; background: rgba(0,0,0,0.55);
+            opacity: 0; pointer-events: none; transition: opacity 0.25s ease; z-index: 999;
         }
-
-        .overlay-detalhes.show {
-            opacity: 1;
-            pointer-events: auto;
-        }
-
+        .overlay-detalhes.show { opacity: 1; pointer-events: auto; }
         .painel-detalhes {
-            position: fixed;
-            top: 0;
-            right: -430px;
-            width: 420px;
-            max-width: calc(100vw - 24px);
-            height: 100vh;
-            background: linear-gradient(180deg, #0f1721 0%, #0b1118 100%);
-            border-left: 1px solid rgba(255,255,255,0.08);
-            box-shadow: -18px 0 40px rgba(0,0,0,0.35);
-            z-index: 1000;
-            transition: right 0.28s ease;
-            display: flex;
-            flex-direction: column;
+            position: fixed; top: 0; right: -520px; width: 500px; max-width: calc(100vw - 20px);
+            height: 100vh; background: linear-gradient(180deg, #0f1721 0%, #0b1118 100%);
+            border-left: 1px solid rgba(255,255,255,0.08); box-shadow: -18px 0 40px rgba(0,0,0,0.35);
+            z-index: 1000; transition: right 0.28s ease; display: flex; flex-direction: column;
         }
-
-        .painel-detalhes.show {
-            right: 0;
-        }
-
+        .painel-detalhes.show { right: 0; }
         .painel-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 12px;
-            padding: 22px 22px 16px;
-            border-bottom: 1px solid rgba(255,255,255,0.06);
+            display: flex; justify-content: space-between; align-items: center; gap: 12px;
+            padding: 22px 22px 16px; border-bottom: 1px solid rgba(255,255,255,0.06);
         }
-
-        .painel-header h2 {
-            margin: 0;
-            font-size: 20px;
-            font-weight: 800;
+        .painel-header h2 { margin: 0; font-size: 20px; font-weight: 800; }
+        .painel-body { padding: 22px; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; }
+        .detail-card, .form-card {
+            border-radius: 16px; background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.06); padding: 14px 16px;
         }
-
-        .painel-body {
-            padding: 22px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 14px;
-        }
-
-        .detail-card {
-            border-radius: 16px;
-            background: rgba(255,255,255,0.04);
-            border: 1px solid rgba(255,255,255,0.06);
-            padding: 14px 16px;
-        }
-
         .detail-label {
-            display: block;
-            margin-bottom: 6px;
-            color: rgba(255,255,255,0.58);
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
-            font-weight: 700;
+            display: block; margin-bottom: 6px; color: rgba(255,255,255,0.58); font-size: 12px;
+            text-transform: uppercase; letter-spacing: 0.04em; font-weight: 700;
         }
-
-        .detail-value {
-            color: #f4f6f8;
-            font-size: 15px;
-            font-weight: 700;
-            word-break: break-word;
-        }
-
+        .detail-value { color: #f4f6f8; font-size: 15px; font-weight: 700; word-break: break-word; }
         .stats-cards {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
-            margin-top: 15px;
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 15px;
         }
-
-        .card-stat {
-            padding: 14px;
-            border-radius: 12px;
-            text-align: center;
-            font-weight: bold;
-            background: rgba(255,255,255,0.05);
-        }
-
-        .card-stat span {
-            display: block;
-            font-size: 12px;
-            opacity: 0.7;
-        }
-
-        .card-stat strong {
-            font-size: 20px;
-        }
-
-        /* cores */
+        .card-stat { padding: 14px; border-radius: 12px; text-align: center; font-weight: bold; background: rgba(255,255,255,0.05); }
+        .card-stat span { display: block; font-size: 12px; opacity: 0.7; }
+        .card-stat strong { font-size: 20px; }
         .green { background: rgba(0,200,83,0.15); color: #00c853; }
         .red { background: rgba(255,82,82,0.15); color: #ff5252; }
         .yellow { background: rgba(255,193,7,0.15); color: #ffc107; }
         .blue { background: rgba(33,150,243,0.15); color: #2196f3; }
-
-        @media (max-width: 1100px) {
-            .linha-colaborador {
-                grid-template-columns: 1fr;
-            }
-
-            .status-actions {
-                justify-content: flex-start;
-            }
-
-            .btn-eye {
-                width: 100%;
-                height: 42px;
-            }
+        .hidden { display: none !important; }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .form-group { display: flex; flex-direction: column; gap: 6px; }
+        .form-group.full { grid-column: 1 / -1; }
+        select, input, textarea {
+            width: 100%; border-radius: 12px; border: 1px solid rgba(255,255,255,0.10);
+            background: #111a24; color: #fff; padding: 12px 12px; font-size: 14px;
+        }
+        textarea { min-height: 110px; resize: vertical; }
+        .destino-chip {
+            display: inline-flex; align-items: center; gap: 8px; width: fit-content; padding: 8px 12px;
+            border-radius: 999px; background: rgba(255,255,255,0.06); color: #ffe0c2; font-size: 12px; font-weight: 700;
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+        .solicitacao-resumo {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+        .solicitacao-lista {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .solicitacao-item {
+            border-radius: 16px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.07);
+            padding: 14px 16px;
+        }
+        .solicitacao-topo {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+        .solicitacao-titulo {
+            font-size: 15px;
+            font-weight: 800;
+            margin: 0;
+        }
+        .solicitacao-subtitulo {
+            color: rgba(255,255,255,0.68);
+            font-size: 13px;
+            margin-top: 4px;
+        }
+        .status-chip {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 7px 11px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 800;
+            border: 1px solid rgba(255,255,255,0.08);
+            white-space: nowrap;
+        }
+        .status-chip.pendente { background: rgba(255,193,7,0.15); color: #ffd54f; }
+        .status-chip.aprovada { background: rgba(0,200,83,0.15); color: #7df0ae; }
+        .status-chip.recusada { background: rgba(255,82,82,0.15); color: #ff9f9f; }
+        .solicitacao-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .solicitacao-bloco {
+            border-radius: 12px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.05);
+            padding: 10px 12px;
+        }
+        .solicitacao-vazio {
+            padding: 18px;
+            border-radius: 16px;
+            background: rgba(255,255,255,0.04);
+            border: 1px dashed rgba(255,255,255,0.12);
+            color: rgba(255,255,255,0.72);
+            text-align: center;
         }
 
+        .atestado-lista {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 14px;
+        }
+        .atestado-item {
+            border-radius: 16px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.07);
+            padding: 14px 16px;
+        }
+        .file-hint {
+            font-size: 12px;
+            color: rgba(255,255,255,0.65);
+            margin-top: 4px;
+        }
+        .btn-link-file {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 10px;
+            padding: 9px 12px;
+            border-radius: 12px;
+            text-decoration: none;
+            color: #fff;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.10);
+            font-weight: 700;
+            font-size: 13px;
+        }
+        @media (max-width: 1150px) {
+            .linha-colaborador { grid-template-columns: 1fr; }
+            .linha-actions { justify-content: flex-start; }
+        }
         @media (max-width: 900px) {
-            .topbar-inner,
-            .card-header {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-
-            .topbar-right {
-                width: 100%;
-                justify-content: space-between;
-            }
-
-            .actions-top,
-            .tfoot-actions {
-                width: 100%;
-            }
-
-            .btn-primary,
-            .btn-secondary {
-                width: 100%;
-            }
-
-            .page {
-                padding: 24px 16px 40px 16px;
-            }
-
-            .card {
-                padding: 18px;
-            }
+            .topbar-inner, .card-header { flex-direction: column; align-items: flex-start; }
+            .topbar-right, .actions-top, .tfoot-actions { width: 100%; }
+            .btn-primary, .btn-secondary { width: 100%; }
+            .page { padding: 24px 16px 40px 16px; }
+            .card { padding: 18px; }
+            .form-grid, .stats-cards, .solicitacao-resumo, .solicitacao-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -473,13 +387,15 @@
                 <a class="btn-menu" href="/operacao">Voltar ao Menu</a>
                 <div class="logo-title">📣 Sistema de Presença</div>
             </div>
-
             <div class="topbar-right">
+                <button class="btn-notify" type="button" onclick="abrirNotificacoesSupervisor()" title="Ver minhas notificações">
+                    <span>🔔 Notificações</span>
+                    <span id="notifyBadge" class="notify-badge">{{ resumo_solicitacoes.pendentes }}</span>
+                </button>
+                <a class="btn-secondary" href="{{ url_for('estatisticas_supervisor') }}">📊 Estatísticas</a>
                 <div class="user-info">
                     {{ supervisor }}
-                    {% if usuario %}
-                        ({{ usuario }})
-                    {% endif %}
+                    {% if usuario %} ({{ usuario }}) {% endif %}
                 </div>
                 <a class="btn-sair" href="/logout">Sair</a>
             </div>
@@ -491,14 +407,9 @@
             <div class="card-header">
                 <div>
                     <h1 class="card-title">Marcar Presença</h1>
-                    <p class="card-subtitle">
-                        Realize a presença do dia <strong>{{ data_hoje }}</strong> e clique em <strong>Salvar Presenças</strong>.
-                    </p>
-                    <p class="card-subtitle">
-                        Coluna encontrada: <strong>{{ coluna_dia or 'Não encontrada' }}</strong>
-                    </p>
+                    <p class="card-subtitle">Realize a presença do dia <strong>{{ data_hoje }}</strong> e clique em <strong>Salvar Presenças</strong>.</p>
+                    <p class="card-subtitle">Coluna encontrada: <strong>{{ coluna_dia or 'Não encontrada' }}</strong></p>
                 </div>
-
                 <div class="actions-top">
                     <button class="btn-secondary" type="button" onclick="preencherTodos('P')">Marcar todos como P</button>
                     <button class="btn-primary" type="button" onclick="salvarTodasPresencas()">Salvar Presenças</button>
@@ -510,16 +421,12 @@
             {% if colaboradores %}
             <div class="lista-presenca">
                 {% for c in colaboradores %}
-                <div
-                    class="linha-colaborador {% if c.desligado %}row-desligado{% endif %}"
-                    data-matricula="{{ c.matricula }}"
-                >
+                <div class="linha-colaborador {% if c.desligado %}row-desligado{% endif %}" data-matricula="{{ c.matricula }}">
                     <div class="info-principal">
                         <span class="matricula-badge">{{ c.matricula }}</span>
                         <div class="nome-colaborador">{{ c.colaborador }}</div>
-                        {% if c.desligado %}
-                            <span class="badge-des">DESLIGADO</span>
-                        {% endif %}
+                        <div class="meta-colaborador">{{ c.cargo }} • {{ c.turno }} • {{ c.area }}</div>
+                        {% if c.desligado %}<span class="badge-des">DESLIGADO</span>{% endif %}
                     </div>
 
                     <div class="status-actions">
@@ -530,19 +437,13 @@
                             data-matricula="{{ c.matricula }}"
                             data-status="{{ s }}"
                             onclick="selecionarStatus('{{ c.matricula }}', '{{ s }}', this)"
-                        >
-                            {{ s }}
-                        </button>
+                        >{{ s }}</button>
                         {% endfor %}
                     </div>
 
-                    <div>
-                        <button
-                            type="button"
-                            class="btn-eye"
-                            onclick="abrirDetalhes('{{ c.matricula }}')"
-                            title="Ver detalhes"
-                        >👁</button>
+                    <div class="linha-actions">
+                        <button type="button" class="btn-icon" onclick="abrirDetalhes('{{ c.matricula }}')" title="Ver dados">👁</button>
+                        <button type="button" class="btn-icon" onclick="abrirOpcoes('{{ c.matricula }}')" title="Opções">⚙</button>
                     </div>
                 </div>
                 {% endfor %}
@@ -553,183 +454,460 @@
             </div>
 
             <div class="footer-note">
-                Dica: marque rapidamente a presença pelos botões e use o olho para consultar detalhes do colaborador.
+                Dica: use o olho para consultar dados do colaborador, a engrenagem para abrir solicitações e para lançar atestados retroativos com imagem.
             </div>
             {% else %}
-            <div class="empty-box">
-                Nenhum colaborador encontrado para este supervisor.
-            </div>
+            <div class="empty-box">Nenhum colaborador encontrado para este supervisor.</div>
             {% endif %}
         </section>
     </main>
 
-    <div id="overlayDetalhes" class="overlay-detalhes" onclick="fecharDetalhes()"></div>
+    <div id="overlayDetalhes" class="overlay-detalhes" onclick="fecharPainel()"></div>
 
     <aside id="painelDetalhes" class="painel-detalhes" aria-hidden="true">
         <div class="painel-header">
-            <h2>Detalhes do colaborador</h2>
-            <button class="btn-close-panel" type="button" onclick="fecharDetalhes()">Fechar</button>
+            <h2 id="tituloPainel">Detalhes do colaborador</h2>
+            <button class="btn-close-panel" type="button" onclick="fecharPainel()">Fechar</button>
         </div>
-        <div class="painel-body" id="conteudoDetalhes"></div>
+        <div class="painel-body" id="conteudoPainel"></div>
     </aside>
 
     <script>
         const matriculas = {{ matriculas|tojson }};
         const colaboradores = {{ colaboradores|tojson }};
-        const presencasMap = {};
+        const tiposSolicitacao = {{ tipos_solicitacao|tojson }};
+        let minhasSolicitacoes = {{ minhas_solicitacoes|tojson }};
+        let resumoSolicitacoes = {{ resumo_solicitacoes|tojson }};
+                const presencasMap = {};
+        let colaboradorSelecionado = null;
 
         colaboradores.forEach(colaborador => {
-            if (colaborador.status_hoje) {
-                presencasMap[colaborador.matricula] = colaborador.status_hoje;
-            }
+            if (colaborador.status_hoje) presencasMap[colaborador.matricula] = colaborador.status_hoje;
         });
 
         function mostrarMensagem(tipo, texto) {
-            const box = document.getElementById("statusBox");
-            box.className = "status-box show";
+            const box = document.getElementById('statusBox');
+            box.className = 'status-box show';
             box.textContent = texto;
-
-            if (tipo === "success") {
-                box.classList.add("status-success");
-            } else {
-                box.classList.add("status-error");
-            }
-
-            window.scrollTo({ top: 0, behavior: "smooth" });
+            if (tipo === 'success') box.classList.add('status-success');
+            else if (tipo === 'info') box.classList.add('status-info');
+            else box.classList.add('status-error');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function selecionarStatus(matricula, status, botao) {
             presencasMap[matricula] = status;
-
             const linha = botao.closest('.linha-colaborador');
             if (!linha) return;
-
-            linha.querySelectorAll('.status-pill').forEach(btn => {
-                btn.classList.remove('ativo');
-            });
-
+            linha.querySelectorAll('.status-pill').forEach(btn => btn.classList.remove('ativo'));
             botao.classList.add('ativo');
         }
 
         function preencherTodos(status) {
             for (const matricula of matriculas) {
                 const botao = document.querySelector(`.status-pill[data-matricula="${matricula}"][data-status="${status}"]`);
-                if (botao) {
-                    selecionarStatus(matricula, status, botao);
-                }
+                if (botao) selecionarStatus(matricula, status, botao);
             }
         }
 
-        function abrirDetalhes(matricula) {
-            const colaborador = colaboradores.find(c => String(c.matricula) === String(matricula));
-            if (!colaborador) return;
-
-            const stats = colaborador.stats_mes || {};
-
-            const presencas = stats.presencas ?? 0;
-            const faltas = stats.faltas ?? 0;
-            const atestados = stats.atestados ?? 0;
-            const percentual = stats.percentual_presenca ?? 0;
-
-            const statusHoje = presencasMap[colaborador.matricula] || colaborador.status_hoje || '-';
-
-            const conteudo = document.getElementById('conteudoDetalhes');
-            conteudo.innerHTML = `
-                <div class="detail-card">
-                    <span class="detail-label">Matrícula</span>
-                    <div class="detail-value">${colaborador.matricula || '-'}</div>
-                </div>
-
-                <div class="detail-card">
-                    <span class="detail-label">Colaborador</span>
-                    <div class="detail-value">${colaborador.colaborador || '-'}</div>
-                </div>
-
-                <div class="detail-card">
-                    <span class="detail-label">Cargo</span>
-                    <div class="detail-value">${colaborador.cargo || '-'}</div>
-                </div>
-
-                <div class="detail-card">
-                    <span class="detail-label">Área</span>
-                    <div class="detail-value">${colaborador.area || '-'}</div>
-                </div>
-
-                <div class="detail-card">
-                    <span class="detail-label">Cidade</span>
-                    <div class="detail-value">${colaborador.cidade || '-'}</div>
-                </div>
-
-                <div class="detail-card">
-                    <span class="detail-label">Turno</span>
-                    <div class="detail-value">${colaborador.turno || '-'}</div>
-                </div>
-
-                <div class="detail-card">
-                    <span class="detail-label">Status de hoje</span>
-                    <div class="detail-value">${statusHoje}</div>
-                </div>
-
-                <div class="detail-card">
-                    <span class="detail-label">Situação</span>
-                    <div class="detail-value">${colaborador.desligado ? 'Desligado' : 'Ativo'}</div>
-                </div>
-
-                <div class="stats-cards">
-                    <div class="card-stat green">
-                        <span>P</span>
-                        <strong>${presencas}</strong>
-                    </div>
-
-                    <div class="card-stat red">
-                        <span>F</span>
-                        <strong>${faltas}</strong>
-                    </div>
-
-                    <div class="card-stat yellow">
-                        <span>AT</span>
-                        <strong>${atestados}</strong>
-                    </div>
-
-                    <div class="card-stat blue">
-                        <span>%</span>
-                        <strong>${percentual}%</strong>
-                    </div>
-                </div>
-            `;
-
+        function abrirPainel(titulo, html) {
+            document.getElementById('tituloPainel').textContent = titulo;
+            document.getElementById('conteudoPainel').innerHTML = html;
             document.getElementById('overlayDetalhes').classList.add('show');
             document.getElementById('painelDetalhes').classList.add('show');
             document.getElementById('painelDetalhes').setAttribute('aria-hidden', 'false');
         }
 
-        function fecharDetalhes() {
+        function fecharPainel() {
             document.getElementById('overlayDetalhes').classList.remove('show');
             document.getElementById('painelDetalhes').classList.remove('show');
             document.getElementById('painelDetalhes').setAttribute('aria-hidden', 'true');
         }
 
-        document.addEventListener('keydown', function(event) {
-            if (event.key === 'Escape') {
-                fecharDetalhes();
+        function abrirDetalhes(matricula) {
+            const colaborador = colaboradores.find(c => String(c.matricula) === String(matricula));
+            if (!colaborador) return;
+            colaboradorSelecionado = colaborador;
+
+            const statusHoje = presencasMap[colaborador.matricula] || colaborador.status_hoje || '-';
+            const percentualPresenca = Number(colaborador.percentual_presenca || 0).toFixed(1).replace('.', ',');
+            const html = `
+                <div class="form-card">
+                    <span class="detail-label">Estatísticas do mês</span>
+                    <div class="stats-cards">
+                        <div class="card-stat green"><span>Presenças</span><strong>${colaborador.total_presencas || 0}</strong></div>
+                        <div class="card-stat red"><span>Faltas</span><strong>${colaborador.total_faltas || 0}</strong></div>
+                        <div class="card-stat yellow"><span>Atestados</span><strong>${colaborador.total_atestados || 0}</strong></div>
+                        <div class="card-stat blue"><span>% presença</span><strong>${percentualPresenca}%</strong></div>
+                    </div>
+                    <div class="footer-note" style="margin-top:12px;">PH e HE entram como presença. Percentual calculado sobre os dias já lançados no mês.</div>
+                </div>
+
+                <div class="detail-card"><span class="detail-label">Matrícula</span><div class="detail-value">${colaborador.matricula || '-'}</div></div>
+                <div class="detail-card"><span class="detail-label">Colaborador</span><div class="detail-value">${colaborador.colaborador || '-'}</div></div>
+                <div class="detail-card"><span class="detail-label">Cargo</span><div class="detail-value">${colaborador.cargo || '-'}</div></div>
+                <div class="detail-card"><span class="detail-label">Área</span><div class="detail-value">${colaborador.area || '-'}</div></div>
+                <div class="detail-card"><span class="detail-label">Setor</span><div class="detail-value">${colaborador.setor || '-'}</div></div>
+                <div class="detail-card"><span class="detail-label">Cidade</span><div class="detail-value">${colaborador.cidade || '-'}</div></div>
+                <div class="detail-card"><span class="detail-label">Turno</span><div class="detail-value">${colaborador.turno || '-'}</div></div>
+                <div class="detail-card"><span class="detail-label">Supervisor</span><div class="detail-value">${colaborador.supervisor || '-'}</div></div>
+                <div class="detail-card"><span class="detail-label">Coordenador</span><div class="detail-value">${colaborador.coordenador || '-'}</div></div>
+                <div class="detail-card"><span class="detail-label">Linha</span><div class="detail-value">${colaborador.linha || '-'}</div></div>
+                <div class="detail-card"><span class="detail-label">Ponto</span><div class="detail-value">${colaborador.ponto || '-'}</div></div>
+                <div class="detail-card"><span class="detail-label">Status de hoje</span><div class="detail-value">${statusHoje}</div></div>
+                <div class="detail-card"><span class="detail-label">Situação</span><div class="detail-value">${colaborador.desligado ? 'Desligado' : 'Ativo'}</div></div>
+            `;
+            abrirPainel('Detalhes do colaborador', html);
+        }
+
+        function buildSolicitacaoOptions() {
+            const ordem = ['alterar_linha_ponto', 'trocar_gestao', 'adicionar_atestado', 'solicitar_desligamento', 'solicitar_efetivacao', 'solicitar_promocao'];
+            const ordenados = [...tiposSolicitacao].sort((a, b) => ordem.indexOf(a.valor) - ordem.indexOf(b.valor));
+            return ordenados.map(item => `<option value="${item.valor}" data-destino="${item.destino}">${item.label}</option>`).join('');
+        }
+
+        function renderCamposSolicitacao(tipo, colaborador) {
+            switch (tipo) {
+                case 'alterar_linha_ponto':
+                    return `
+                        <div class="form-group">
+                            <label class="detail-label">Nova linha</label>
+                            <input id="linhaNova" type="text" placeholder="Ex: L80A" value="${colaborador.linha || ''}">
+                        </div>
+                        <div class="form-group">
+                            <label class="detail-label">Novo ponto</label>
+                            <input id="pontoNovo" type="text" placeholder="Ex: PONTO CENTRAL" value="${colaborador.ponto || ''}">
+                        </div>
+                    `;
+                case 'trocar_gestao':
+                    return `
+                        <div class="form-group full">
+                            <label class="detail-label">Novo supervisor</label>
+                            <input id="supervisorNovo" type="text" placeholder="Nome do novo supervisor">
+                        </div>
+                        <div class="form-group full">
+                            <label class="detail-label">Novo coordenador</label>
+                            <input id="coordenadorNovo" type="text" placeholder="Opcional">
+                        </div>
+                    `;
+                case 'solicitar_desligamento':
+                    return `
+                        <div class="form-group">
+                            <label class="detail-label">Data sugerida</label>
+                            <input id="dataSugerida" type="date">
+                        </div>
+                        <div class="form-group full">
+                            <label class="detail-label">Motivo resumido</label>
+                            <input id="motivoDesligamento" type="text" placeholder="Motivo principal">
+                        </div>
+                    `;
+                case 'solicitar_efetivacao':
+                    return `
+                        <div class="form-group full">
+                            <label class="detail-label">Cargo sugerido</label>
+                            <input id="cargoEfetivacao" type="text" placeholder="Ex: Assistente de Depósito Efetivo">
+                        </div>
+                        <div class="form-group full">
+                            <label class="detail-label">Observação</label>
+                            <input id="obsEfetivacao" type="text" placeholder="Opcional">
+                        </div>
+                    `;
+                case 'solicitar_promocao':
+                    return `
+                        <div class="form-group">
+                            <label class="detail-label">Cargo atual</label>
+                            <input id="cargoAtualPromocao" type="text" value="${colaborador.cargo || ''}">
+                        </div>
+                        <div class="form-group">
+                            <label class="detail-label">Novo cargo</label>
+                            <input id="cargoNovoPromocao" type="text" placeholder="Cargo proposto">
+                        </div>
+                        <div class="form-group full">
+                            <label class="detail-label">Observação</label>
+                            <input id="obsPromocao" type="text" placeholder="Opcional">
+                        </div>
+                    `;
+                case 'adicionar_atestado':
+                    return `
+                        <div class="form-group">
+                            <label class="detail-label">Data inicial do atestado</label>
+                            <input id="dataInicioAtestado" type="date" max="${new Date().toISOString().split('T')[0]}">
+                        </div>
+                        <div class="form-group">
+                            <label class="detail-label">Quantidade de dias</label>
+                            <input id="quantidadeDiasAtestado" type="number" min="1" step="1" value="1" placeholder="Ex.: 3">
+                        </div>
+                        <div class="form-group full">
+                            <label class="detail-label">Imagem do atestado</label>
+                            <input id="arquivoAtestadoSolicitacao" type="file" accept="image/png,image/jpeg,image/jpg,image/webp">
+                        </div>
+                        <div class="form-group full">
+                            <label class="detail-label">Observação do atestado</label>
+                            <textarea id="observacaoAtestadoSolicitacao" placeholder="Ex.: colaborador faltou hoje e entregou o atestado no dia seguinte."></textarea>
+                        </div>
+                    `;
+                default:
+                    return '';
             }
+        }
+
+        function atualizarCamposSolicitacao() {
+            const select = document.getElementById('tipoSolicitacao');
+            const destino = select.options[select.selectedIndex].dataset.destino || '-';
+            document.getElementById('chipDestino').textContent = `Encaminhamento: ${destino}`;
+            document.getElementById('camposSolicitacao').innerHTML = renderCamposSolicitacao(select.value, colaboradorSelecionado || {});
+        }
+
+        function classeStatusSolicitacao(status) {
+            const chave = String(status || '').toUpperCase();
+            if (chave === 'APROVADA') return 'aprovada';
+            if (chave === 'RECUSADA') return 'recusada';
+            return 'pendente';
+        }
+
+        function escaparHtml(valor) {
+            return String(valor ?? '-')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function atualizarBadgeSolicitacoes() {
+            const badge = document.getElementById('notifyBadge');
+            if (!badge) return;
+            badge.textContent = String(resumoSolicitacoes?.pendentes || 0);
+        }
+
+        function montarResumoSolicitacoesHtml() {
+            return `
+                <div class="solicitacao-resumo">
+                    <div class="card-stat yellow"><span>Pendentes</span><strong>${resumoSolicitacoes?.pendentes || 0}</strong></div>
+                    <div class="card-stat green"><span>Aprovadas</span><strong>${resumoSolicitacoes?.aprovadas || 0}</strong></div>
+                    <div class="card-stat red"><span>Recusadas</span><strong>${resumoSolicitacoes?.recusadas || 0}</strong></div>
+                    <div class="card-stat blue"><span>Total</span><strong>${resumoSolicitacoes?.total || 0}</strong></div>
+                </div>
+            `;
+        }
+
+        function montarSolicitacoesHtml() {
+            if (!Array.isArray(minhasSolicitacoes) || minhasSolicitacoes.length === 0) {
+                return `
+                    ${montarResumoSolicitacoesHtml()}
+                    <div class="solicitacao-vazio">Você ainda não possui notificações registradas.</div>
+                `;
+            }
+
+            const lista = minhasSolicitacoes.map(item => {
+                const statusClasse = classeStatusSolicitacao(item.status);
+                const resposta = item.resposta_aprovador ? escaparHtml(item.resposta_aprovador) : 'Ainda sem retorno do setor responsável.';
+                return `
+                    <div class="solicitacao-item">
+                        <div class="solicitacao-topo">
+                            <div>
+                                <div class="solicitacao-titulo">${escaparHtml(item.tipo_label || item.tipo_solicitacao || '-')}</div>
+                                <div class="solicitacao-subtitulo">${escaparHtml(item.colaborador_nome || '-')} • Matrícula ${escaparHtml(item.matricula || '-')}</div>
+                            </div>
+                            <span class="status-chip ${statusClasse}">${escaparHtml(item.status_exibicao || item.status || '-')}</span>
+                        </div>
+                        <div class="solicitacao-grid">
+                            <div class="solicitacao-bloco">
+                                <span class="detail-label">Encaminhado para</span>
+                                <div class="detail-value">${escaparHtml(item.destino_setor || '-')}</div>
+                            </div>
+                            <div class="solicitacao-bloco">
+                                <span class="detail-label">Solicitado em</span>
+                                <div class="detail-value">${escaparHtml(item.data_solicitacao_fmt || '-')}</div>
+                            </div>
+                            <div class="solicitacao-bloco">
+                                <span class="detail-label">Justificativa</span>
+                                <div class="detail-value">${escaparHtml(item.justificativa || '-')}</div>
+                            </div>
+                            <div class="solicitacao-bloco">
+                                <span class="detail-label">Retorno</span>
+                                <div class="detail-value">${resposta}</div>
+                                <div class="solicitacao-subtitulo">Respondido em: ${escaparHtml(item.data_resposta_fmt || '-')}</div>
+                                ${item.arquivo_atestado_url ? `<div style="margin-top:10px;"><a class="btn-secondary" href="${escaparHtml(item.arquivo_atestado_url)}" target="_blank" rel="noopener noreferrer" style="padding:8px 12px; font-size:12px; display:inline-flex;">Ver atestado</a></div>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            return `${montarResumoSolicitacoesHtml()}<div class="solicitacao-lista">${lista}</div>`;
+        }
+
+        async function carregarMinhasSolicitacoes() {
+            const resposta = await fetch('/solicitacoes/minhas');
+            const json = await resposta.json();
+            if (!json.ok) throw new Error(json.msg || 'Erro ao carregar solicitações.');
+            minhasSolicitacoes = json.solicitacoes || [];
+            resumoSolicitacoes = json.resumo || { pendentes: 0, aprovadas: 0, recusadas: 0, total: 0 };
+            atualizarBadgeSolicitacoes();
+        }
+
+        async function abrirNotificacoesSupervisor() {
+            try {
+                await carregarMinhasSolicitacoes();
+                abrirPainel('Minhas notificações', montarSolicitacoesHtml());
+            } catch (erro) {
+                mostrarMensagem('error', erro?.message || 'Não foi possível carregar as notificações.');
+            }
+        }
+
+        function abrirOpcoes(matricula) {
+            const colaborador = colaboradores.find(c => String(c.matricula) === String(matricula));
+            if (!colaborador) return;
+            colaboradorSelecionado = colaborador;
+
+            const html = `
+                <div class="detail-card">
+                    <span class="detail-label">Colaborador</span>
+                    <div class="detail-value">${colaborador.colaborador}</div>
+                    <div class="meta-colaborador">Matrícula ${colaborador.matricula} • Supervisor atual: ${colaborador.supervisor || '-'}</div>
+                </div>
+
+                <div class="form-card">
+                    <div class="destino-chip" id="chipDestino">Encaminhamento: ADM</div>
+                    <div class="form-grid" style="margin-top:12px;">
+                        <div class="form-group full">
+                            <label class="detail-label">Tipo de solicitação</label>
+                            <select id="tipoSolicitacao" onchange="atualizarCamposSolicitacao()">${buildSolicitacaoOptions()}</select>
+                        </div>
+                        <div id="camposSolicitacao" class="form-grid full"></div>
+                        <div class="form-group full">
+                            <label class="detail-label">Justificativa</label>
+                            <textarea id="justificativaSolicitacao" placeholder="Explique o motivo da solicitação."></textarea>
+                        </div>
+                    </div>
+                    <div style="display:flex; gap:10px; margin-top:14px; flex-wrap:wrap;">
+                        <button class="btn-action" type="button" onclick="enviarSolicitacao()">Enviar solicitação</button>
+                        <button class="btn-ghost" type="button" onclick="abrirDetalhes('${colaborador.matricula}')">Voltar aos detalhes</button>
+                    </div>
+                </div>
+
+                `;
+            abrirPainel('Opções do colaborador', html);
+            atualizarCamposSolicitacao();
+        }
+
+        function montarPayloadSolicitacao(tipo) {
+            if (tipo === 'alterar_linha_ponto') {
+                return {
+                    linha_nova: document.getElementById('linhaNova')?.value || '',
+                    ponto_novo: document.getElementById('pontoNovo')?.value || ''
+                };
+            }
+            if (tipo === 'trocar_gestao') {
+                return {
+                    supervisor_novo: document.getElementById('supervisorNovo')?.value || '',
+                    coordenador_novo: document.getElementById('coordenadorNovo')?.value || ''
+                };
+            }
+            if (tipo === 'solicitar_desligamento') {
+                return {
+                    data_sugerida: document.getElementById('dataSugerida')?.value || '',
+                    motivo: document.getElementById('motivoDesligamento')?.value || ''
+                };
+            }
+            if (tipo === 'solicitar_efetivacao') {
+                return {
+                    cargo_sugerido: document.getElementById('cargoEfetivacao')?.value || '',
+                    observacao: document.getElementById('obsEfetivacao')?.value || ''
+                };
+            }
+            if (tipo === 'solicitar_promocao') {
+                return {
+                    cargo_atual: document.getElementById('cargoAtualPromocao')?.value || '',
+                    cargo_novo: document.getElementById('cargoNovoPromocao')?.value || '',
+                    observacao: document.getElementById('obsPromocao')?.value || ''
+                };
+            }
+            if (tipo === 'adicionar_atestado') {
+                return {
+                    data_inicio: formatarDataInputParaBR(document.getElementById('dataInicioAtestado')?.value || ''),
+                    quantidade_dias: document.getElementById('quantidadeDiasAtestado')?.value || '1',
+                    observacao: document.getElementById('observacaoAtestadoSolicitacao')?.value || ''
+                };
+            }
+            return {};
+        }
+
+        async function enviarSolicitacao() {
+            if (!colaboradorSelecionado) return;
+
+            const tipoSolicitacao = document.getElementById('tipoSolicitacao').value;
+            const justificativa = document.getElementById('justificativaSolicitacao').value.trim();
+            const dadosSolicitados = montarPayloadSolicitacao(tipoSolicitacao);
+
+            try {
+                let resposta;
+
+                if (tipoSolicitacao === 'adicionar_atestado') {
+                    const arquivo = document.getElementById('arquivoAtestadoSolicitacao')?.files?.[0];
+                    if (!arquivo) {
+                        mostrarMensagem('error', 'Anexe a imagem do atestado.');
+                        return;
+                    }
+
+                    const formData = new FormData();
+                    formData.append('matricula', colaboradorSelecionado.matricula);
+                    formData.append('tipo_solicitacao', tipoSolicitacao);
+                    formData.append('justificativa', justificativa);
+                    formData.append('data_inicio', dadosSolicitados.data_inicio || '');
+                    formData.append('quantidade_dias', dadosSolicitados.quantidade_dias || '1');
+                    formData.append('observacao', dadosSolicitados.observacao || '');
+                    formData.append('arquivo', arquivo);
+
+                    resposta = await fetch('/solicitacoes/nova', {
+                        method: 'POST',
+                        body: formData
+                    });
+                } else {
+                    resposta = await fetch('/solicitacoes/nova', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            matricula: colaboradorSelecionado.matricula,
+                            tipo_solicitacao: tipoSolicitacao,
+                            justificativa,
+                            dados_solicitados: dadosSolicitados
+                        })
+                    });
+                }
+
+                const json = await resposta.json();
+                if (json.ok) {
+                    mostrarMensagem('success', json.msg || 'Solicitação enviada com sucesso.');
+                    await carregarMinhasSolicitacoes();
+                    fecharPainel();
+                } else {
+                    mostrarMensagem('error', json.msg || 'Erro ao enviar solicitação.');
+                }
+            } catch (erro) {
+                mostrarMensagem('error', 'Erro de comunicação ao enviar solicitação.');
+            }
+        }
+
+        function formatarDataInputParaBR(valor) {
+            if (!valor || !valor.includes('-')) return valor || '';
+            const [ano, mes, dia] = valor.split('-');
+            return `${dia}/${mes}/${ano}`;
+        }
+
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') fecharPainel();
         });
+
+        atualizarBadgeSolicitacoes();
 
         async function salvarTodasPresencas() {
             const presencas = [];
-
             for (const matricula of matriculas) {
                 const status = (presencasMap[matricula] || '').trim();
-
-                if (status) {
-                    presencas.push({
-                        matricula: matricula,
-                        status: status,
-                        obs: ''
-                    });
-                }
+                if (status) presencas.push({ matricula, status, obs: '' });
             }
-
             if (presencas.length === 0) {
                 mostrarMensagem('error', 'Nenhum status foi preenchido.');
                 return;
@@ -744,19 +922,12 @@
             try {
                 const resposta = await fetch('/salvar_presencas', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ presencas })
                 });
-
                 const json = await resposta.json();
-
-                if (json.ok) {
-                    mostrarMensagem('success', json.msg || 'Presenças salvas com sucesso.');
-                } else {
-                    mostrarMensagem('error', json.msg || 'Erro ao salvar presenças.');
-                }
+                if (json.ok) mostrarMensagem('success', json.msg || 'Presenças salvas com sucesso.');
+                else mostrarMensagem('error', json.msg || 'Erro ao salvar presenças.');
             } catch (erro) {
                 mostrarMensagem('error', 'Erro de comunicação ao salvar presenças.');
             } finally {
