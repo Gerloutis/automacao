@@ -3,7 +3,8 @@ import io
 import time
 import threading
 from contextlib import redirect_stdout
-from datetime import date, timedelta, datetime
+from datetime import date, timedelta, datetime, timezone
+from calendar import monthrange
 from werkzeug.utils import secure_filename
 
 import pandas as pd
@@ -258,6 +259,33 @@ def carregar_presenca_supervisor(nome_supervisor):
     return filtrado, ws, coluna_dia
 
 
+def carregar_supervisores_disponiveis(data_ref=None):
+    gc = ensure_gc()
+    sh = gc.open_by_key(PLANILHA_PRESENCA_ID)
+    ws = sh.worksheet(nome_aba_por_data(data_ref or datetime.now().date()))
+    valores = ws.get_all_values()
+
+    if not valores or len(valores) < 2:
+        return []
+
+    headers = normalizar_headers(valores)
+    df = pd.DataFrame(valores[1:], columns=headers)
+    if df.empty or "SUPERVISOR" not in df.columns:
+        return []
+
+    supervisores = []
+    vistos = set()
+    for valor in df["SUPERVISOR"].tolist():
+        nome = safe_str(valor)
+        chave = nome.upper()
+        if not nome or chave in vistos:
+            continue
+        vistos.add(chave)
+        supervisores.append(nome)
+
+    return sorted(supervisores, key=lambda x: x.upper())
+
+
 def safe_str(valor):
     return str(valor).strip() if valor is not None else ""
 
@@ -307,8 +335,38 @@ def _extrair_data_coluna(coluna, ano_ref=None):
         return None
 
 
+def _normalizar_turno_estatistica(turno):
+    turno_txt = safe_str(turno).upper().replace("º", "").replace("°", "")
+    turno_txt = " ".join(turno_txt.split())
+
+    if turno_txt in {"T1", "1 T", "1T", "1 TURNO", "1 TUR"}:
+        return "T1"
+    if turno_txt in {"T2", "2 T", "2T", "2 TURNO", "2 TUR"}:
+        return "T2"
+    if turno_txt in {"T3", "3 T", "3T", "3 TURNO", "3 TUR"}:
+        return "T3"
+
+    return turno_txt
+
+
+
+def _data_valida_para_turno(data_coluna, turno):
+    turno_norm = _normalizar_turno_estatistica(turno)
+    dia_semana = data_coluna.weekday()  # segunda=0 ... domingo=6
+
+    if turno_norm in {"T1", "T2"}:
+        return dia_semana <= 5  # seg a sáb
+
+    if turno_norm == "T3":
+        return dia_semana != 5  # dom a sex (sábado fora)
+
+    return True
+
+
+
 def calcular_estatisticas_colaborador(row):
     hoje = datetime.now().date()
+    turno = row.get("TURNO", "")
     presenca_codigos = {"P", "PH", "HE"}
     falta_codigos = {"F"}
     atestado_codigos = {"AT"}
@@ -322,6 +380,9 @@ def calcular_estatisticas_colaborador(row):
     for coluna in row.index:
         data_coluna = _extrair_data_coluna(coluna)
         if not data_coluna or data_coluna > hoje:
+            continue
+
+        if not _data_valida_para_turno(data_coluna, turno):
             continue
 
         status = safe_str(row.get(coluna, "")).upper()
@@ -426,6 +487,96 @@ def calcular_estatisticas_equipe(df):
         "colaboradores_estatisticas": colaboradores_ordenados,
     }
 
+
+
+
+def montar_painel_presenca_mensal(df):
+    hoje = datetime.now().date()
+    ultimo_dia_mes = monthrange(hoje.year, hoje.month)[1]
+
+    legenda_status = [
+        {"codigo": "P", "label": "Presença", "classe": "p"},
+        {"codigo": "PH", "label": "Presença com hora extra", "classe": "ph"},
+        {"codigo": "HE", "label": "Hora extra", "classe": "he"},
+        {"codigo": "F", "label": "Falta", "classe": "f"},
+        {"codigo": "AT", "label": "Atestado", "classe": "at"},
+        {"codigo": "FE", "label": "Férias", "classe": "fe"},
+        {"codigo": "PA", "label": "Presença abonada", "classe": "pa"},
+        {"codigo": "FC", "label": "Folga/compensação", "classe": "fc"},
+        {"codigo": "FBH", "label": "Banco de horas", "classe": "fbh"},
+        {"codigo": "S", "label": "Suspensão", "classe": "s"},
+        {"codigo": "AF", "label": "Afastamento", "classe": "af"},
+        {"codigo": "DES", "label": "Desligado", "classe": "des"},
+        {"codigo": "", "label": "Sem lançamento", "classe": "sem"},
+    ]
+
+    if df is None or df.empty:
+        return {
+            "dias": [],
+            "linhas": [],
+            "legenda_status": legenda_status,
+        }
+
+    mapa_semana = {
+        0: "Seg",
+        1: "Ter",
+        2: "Qua",
+        3: "Qui",
+        4: "Sex",
+        5: "Sáb",
+        6: "Dom",
+    }
+
+    dias = []
+    for dia_num in range(1, ultimo_dia_mes + 1):
+        data_ref = date(hoje.year, hoje.month, dia_num)
+        dias.append({
+            "numero": f"{dia_num:02d}",
+            "semana": mapa_semana[data_ref.weekday()],
+            "data": data_ref.strftime("%d/%m/%Y"),
+            "fim_semana": data_ref.weekday() >= 5,
+            "futuro": data_ref > hoje,
+        })
+
+    linhas = []
+    for _, row in df.iterrows():
+        colaborador = safe_str(row.get("COLABORADOR", ""))
+        matricula = safe_str(row.get("MATRÍCULA", ""))
+        turno = safe_str(row.get("TURNO", ""))
+        status_mes = []
+
+        for dia in dias:
+            prefixo = dia["data"][:5]
+            valor_status = ""
+            for coluna in row.index:
+                if safe_str(coluna).startswith(prefixo):
+                    valor_status = safe_str(row.get(coluna, "")).upper()
+                    break
+
+            classe = (valor_status.lower().replace("º", "").replace("°", "") if valor_status else "sem")
+            if classe not in {"p", "ph", "he", "f", "at", "fe", "pa", "fc", "fbh", "s", "af", "des", "sem"}:
+                classe = "outro"
+
+            status_mes.append({
+                "codigo": valor_status,
+                "classe": classe,
+                "tooltip": f"{dia['data']}: {valor_status or 'Sem lançamento'}",
+                "futuro": dia["futuro"],
+                "fim_semana": dia["fim_semana"],
+            })
+
+        linhas.append({
+            "colaborador": colaborador,
+            "matricula": matricula,
+            "turno": turno,
+            "status_mes": status_mes,
+        })
+
+    return {
+        "dias": dias,
+        "linhas": linhas,
+        "legenda_status": legenda_status,
+    }
 
 def parse_data_br(valor):
     valor = safe_str(valor)
@@ -711,9 +862,11 @@ def criar_solicitacao_bd(colaborador, tipo, justificativa, dados_solicitados):
                 dados_anteriores,
                 dados_solicitados,
                 justificativa,
-                data_solicitacao
+                data_solicitacao,
+                updated_at,
+                visualizado_supervisor_em
             )
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, 'PENDENTE', %s, %s, %s, NOW())
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, 'PENDENTE', %s, %s, %s, NOW(), NOW(), NULL)
             RETURNING id
             """,
             (
@@ -744,7 +897,6 @@ def criar_solicitacao_bd(colaborador, tipo, justificativa, dados_solicitados):
     finally:
         cur.close()
         conn.close()
-
 
 def buscar_solicitacoes(destino_setor=None, status=None, solicitado_por_usuario=None, supervisor_atual=None, limite=100):
     conn = get_connection()
@@ -790,19 +942,30 @@ def buscar_solicitacoes(destino_setor=None, status=None, solicitado_por_usuario=
                 aprovado_por_usuario,
                 aprovado_por_nome,
                 data_solicitacao,
-                data_resposta
+                data_resposta,
+                updated_at,
+                visualizado_supervisor_em
             FROM {SOLICITACOES_TABLE}
             {where}
-            ORDER BY data_solicitacao DESC
+            ORDER BY id DESC
             LIMIT %s
             """,
             params + [limite],
         )
-        return cur.fetchall()
+        rows = cur.fetchall()
+        rows.sort(
+            key=lambda item: (
+                _normalizar_datetime_com_timezone(
+                    item.get("updated_at") or item.get("data_resposta") or item.get("data_solicitacao")
+                ) or datetime.min.replace(tzinfo=timezone.utc),
+                item.get("id") or 0,
+            ),
+            reverse=True,
+        )
+        return rows
     finally:
         cur.close()
         conn.close()
-
 
 def buscar_solicitacao_por_id(solicitacao_id):
     conn = get_connection()
@@ -817,6 +980,23 @@ def buscar_solicitacao_por_id(solicitacao_id):
         cur.close()
         conn.close()
 
+def _normalizar_nome_pessoa(valor):
+    return " ".join(safe_str(valor).upper().split())
+
+
+def _linha_eh_do_supervisor(row, nome_supervisor, usuario_supervisor=None):
+    nome_linha = _normalizar_nome_pessoa(row.get("COLABORADOR", ""))
+    supervisor_nome = _normalizar_nome_pessoa(nome_supervisor)
+    usuario_supervisor = safe_str(usuario_supervisor)
+
+    if nome_linha and supervisor_nome and nome_linha == supervisor_nome:
+        return True
+
+    matricula_linha = safe_str(row.get("MATRÍCULA", ""))
+    if usuario_supervisor and matricula_linha and matricula_linha == usuario_supervisor:
+        return True
+
+    return False
 
 def atualizar_status_solicitacao(solicitacao_id, novo_status, resposta_aprovador):
     conn = get_connection()
@@ -830,7 +1010,9 @@ def atualizar_status_solicitacao(solicitacao_id, novo_status, resposta_aprovador
                 resposta_aprovador = %s,
                 aprovado_por_usuario = %s,
                 aprovado_por_nome = %s,
-                data_resposta = NOW()
+                data_resposta = CURRENT_DATE,
+                updated_at = CURRENT_DATE,
+                visualizado_supervisor_em = NULL
             WHERE id = %s
             RETURNING id
             """,
@@ -848,7 +1030,6 @@ def atualizar_status_solicitacao(solicitacao_id, novo_status, resposta_aprovador
     finally:
         cur.close()
         conn.close()
-
 
 def label_tipo(tipo):
     return TIPOS_SOLICITACAO.get(tipo, {}).get("label", tipo)
@@ -888,6 +1069,92 @@ def formatar_data_segura(valor):
     return str(valor)
 
 
+def _normalizar_datetime_com_timezone(valor):
+    if not valor:
+        return None
+    if isinstance(valor, datetime):
+        if valor.tzinfo is None:
+            return valor.replace(tzinfo=timezone.utc)
+        return valor
+    if isinstance(valor, str):
+        bruto = valor.strip()
+        if not bruto:
+            return None
+        bruto = bruto.replace('Z', '+00:00')
+        try:
+            dt = datetime.fromisoformat(bruto)
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=timezone.utc)
+            return dt
+        except ValueError:
+            pass
+        formatos = [
+            "%Y-%m-%d %H:%M:%S.%f",
+            "%Y-%m-%d %H:%M:%S",
+            "%Y-%m-%dT%H:%M:%S.%f",
+            "%Y-%m-%dT%H:%M:%S",
+            "%Y-%m-%d",
+        ]
+        for fmt in formatos:
+            try:
+                dt = datetime.strptime(bruto, fmt)
+                return dt.replace(tzinfo=timezone.utc)
+            except ValueError:
+                continue
+    return None
+
+
+def solicitacao_tem_novidade_para_supervisor(item):
+    visualizado = _normalizar_data_sem_hora(item.get("visualizado_supervisor_em"))
+    atualizado = _normalizar_data_sem_hora(
+        item.get("updated_at") or item.get("data_resposta") or item.get("data_solicitacao")
+    )
+
+    if atualizado is None:
+        return False
+
+    if visualizado is None:
+        return True
+
+    return atualizado > visualizado
+
+def marcar_solicitacoes_visualizadas_supervisor(usuario_supervisor):
+    conn = get_connection()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    try:
+        cur.execute(
+            f"""
+            SELECT id, data_solicitacao, data_resposta, updated_at, visualizado_supervisor_em
+            FROM {SOLICITACOES_TABLE}
+            WHERE solicitado_por_usuario = %s
+            """,
+            (usuario_supervisor,),
+        )
+        rows = cur.fetchall()
+        ids_para_atualizar = [
+            row["id"] for row in rows
+            if solicitacao_tem_novidade_para_supervisor(row)
+        ]
+
+        if not ids_para_atualizar:
+            return 0
+
+        cur.execute(
+            f"""
+            UPDATE {SOLICITACOES_TABLE}
+            SET visualizado_supervisor_em = CURRENT_DATE
+            WHERE id = ANY(%s)
+            RETURNING id
+            """,
+            (ids_para_atualizar,),
+        )
+        atualizadas = cur.fetchall()
+        conn.commit()
+        return len(atualizadas)
+    finally:
+        cur.close()
+        conn.close()
+
 def formatar_solicitacoes_para_template(solicitacoes):
     saida = []
 
@@ -902,6 +1169,9 @@ def formatar_solicitacoes_para_template(solicitacoes):
         }.get(safe_str(item.get("status")).upper(), safe_str(item.get("status")) or "-")
         item["data_solicitacao_fmt"] = formatar_data_segura(item.get("data_solicitacao"))
         item["data_resposta_fmt"] = formatar_data_segura(item.get("data_resposta"))
+        item["updated_at_fmt"] = formatar_data_segura(item.get("updated_at"))
+        item["visualizado_supervisor_em_fmt"] = formatar_data_segura(item.get("visualizado_supervisor_em"))
+        item["tem_novidade_supervisor"] = solicitacao_tem_novidade_para_supervisor(item)
         dados_solicitados = item.get("dados_solicitados") or {}
         resumo_extra = []
 
@@ -921,10 +1191,48 @@ def formatar_solicitacoes_para_template(solicitacoes):
         saida.append(item)
 
     return saida
+def _normalizar_data_sem_hora(valor):
+    if not valor:
+        return None
 
+    if isinstance(valor, datetime):
+        return valor.date()
 
+    if isinstance(valor, date):
+        return valor
+
+    if isinstance(valor, str):
+        bruto = valor.strip()
+        if not bruto:
+            return None
+
+        bruto = bruto.replace('Z', '+00:00')
+
+        try:
+            dt = datetime.fromisoformat(bruto)
+            return dt.date()
+        except ValueError:
+            pass
+
+        formatos = [
+            "%Y-%m-%d %H:%M:%S.%f",
+            "%Y-%m-%d %H:%M:%S",
+            "%Y-%m-%dT%H:%M:%S.%f",
+            "%Y-%m-%dT%H:%M:%S",
+            "%Y-%m-%d",
+            "%d/%m/%Y",
+        ]
+
+        for fmt in formatos:
+            try:
+                dt = datetime.strptime(bruto, fmt)
+                return dt.date()
+            except ValueError:
+                continue
+
+    return None
 def montar_resumo_solicitacoes(solicitacoes):
-    resumo = {"pendentes": 0, "aprovadas": 0, "recusadas": 0, "total": len(solicitacoes)}
+    resumo = {"pendentes": 0, "aprovadas": 0, "recusadas": 0, "total": len(solicitacoes), "nao_lidas": 0}
 
     for item in solicitacoes:
         status = safe_str(item.get("status")).upper()
@@ -935,7 +1243,11 @@ def montar_resumo_solicitacoes(solicitacoes):
         elif status == "RECUSADA":
             resumo["recusadas"] += 1
 
+        if solicitacao_tem_novidade_para_supervisor(item):
+            resumo["nao_lidas"] += 1
+
     return resumo
+
 # =========================================================
 # PRESENÇA
 # =========================================================
@@ -952,6 +1264,8 @@ def salvar_presencas():
             return jsonify({"ok": False, "msg": "Nenhuma presença recebida."}), 400
 
         nome_supervisor = session.get("nome")
+        usuario_supervisor = session.get("usuario")
+
         df, ws, coluna_dia = carregar_presenca_supervisor(nome_supervisor)
 
         if df.empty:
@@ -963,36 +1277,58 @@ def salvar_presencas():
         todos_valores = ws.get_all_values()
         cabecalho = [str(c).strip() for c in todos_valores[0]]
 
-        if "MATRÍCULA" not in cabecalho or "SUPERVISOR" not in cabecalho:
+        if "MATRÍCULA" not in cabecalho or "SUPERVISOR" not in cabecalho or "COLABORADOR" not in cabecalho:
             return jsonify({"ok": False, "msg": "Colunas obrigatórias não encontradas."}), 404
 
         col_idx = cabecalho.index(coluna_dia) + 1
         idx_matricula = cabecalho.index("MATRÍCULA")
         idx_supervisor = cabecalho.index("SUPERVISOR")
+        idx_colaborador = cabecalho.index("COLABORADOR")
 
         linhas_por_matricula = {}
+        linha_supervisor = None
+
+        supervisor_nome_norm = _normalizar_nome_pessoa(nome_supervisor)
+
         for i, linha in enumerate(todos_valores[1:], start=2):
             mat = str(linha[idx_matricula]).strip() if idx_matricula < len(linha) else ""
             sup = str(linha[idx_supervisor]).strip().upper() if idx_supervisor < len(linha) else ""
-            if mat and sup == str(nome_supervisor).strip().upper():
-                linhas_por_matricula[mat] = i
+            nome_colab = str(linha[idx_colaborador]).strip() if idx_colaborador < len(linha) else ""
+
+            if sup == str(nome_supervisor).strip().upper():
+                if mat:
+                    linhas_por_matricula[mat] = i
+
+                nome_colab_norm = _normalizar_nome_pessoa(nome_colab)
+                if nome_colab_norm == supervisor_nome_norm:
+                    linha_supervisor = i
 
         atualizacoes = 0
+
         for item in presencas:
             matricula = str(item.get("matricula", "")).strip()
             status = str(item.get("status", "")).strip().upper()
+
             if not matricula or status not in STATUS_PRESENCA:
                 continue
+
             linha_planilha = linhas_por_matricula.get(matricula)
             if not linha_planilha:
                 continue
+
             ws.update_cell(linha_planilha, col_idx, status)
             atualizacoes += 1
 
-        return jsonify({"ok": True, "msg": f"{atualizacoes} presença(s) salva(s) com sucesso."})
+        if linha_supervisor:
+            ws.update_cell(linha_supervisor, col_idx, "P")
+            atualizacoes += 1
+
+        return jsonify({
+            "ok": True,
+            "msg": f"{atualizacoes} presença(s) salva(s) com sucesso. Supervisor marcado automaticamente como P."
+        })
     except Exception as e:
         return jsonify({"ok": False, "msg": str(e)}), 500
-
 
 @app.route("/presenca")
 def presenca():
@@ -1006,6 +1342,13 @@ def presenca():
         colaboradores = []
         if not df.empty:
             for _, row in df.iterrows():
+                if _linha_eh_do_supervisor(
+                    row,
+                    nome_supervisor=session.get("nome"),
+                    usuario_supervisor=session.get("usuario")
+                ):
+                    continue
+
                 status_hoje = row.get(coluna_dia, "") if coluna_dia else ""
                 estatisticas = calcular_estatisticas_colaborador(row)
                 colaboradores.append({
@@ -1035,6 +1378,10 @@ def presenca():
         meus_atestados = formatar_atestados_para_template(
             buscar_atestados_supervisor(session.get("usuario"), limite=50)
         )
+        supervisores_disponiveis = [
+            nome for nome in carregar_supervisores_disponiveis()
+            if safe_str(nome).upper() != safe_str(nome_supervisor).upper()
+        ]
 
         return render_template(
             "presenca.html",
@@ -1049,6 +1396,7 @@ def presenca():
                 {"valor": k, "label": v["label"], "destino": v["destino"]}
                 for k, v in TIPOS_SOLICITACAO.items()
             ],
+            supervisores_disponiveis=supervisores_disponiveis,
             minhas_solicitacoes=minhas_solicitacoes,
             resumo_solicitacoes=resumo_solicitacoes,
             meus_atestados=meus_atestados,
@@ -1066,11 +1414,13 @@ def estatisticas_supervisor():
         nome_supervisor = session.get("nome")
         df, _, _ = carregar_presenca_supervisor(nome_supervisor)
         dados = calcular_estatisticas_equipe(df)
+        painel_mensal = montar_painel_presenca_mensal(df)
         return render_template(
             "estatisticas.html",
             supervisor=nome_supervisor,
             usuario=session.get("usuario"),
             data_hoje=datetime.now().strftime("%d/%m/%Y"),
+            painel_mensal=painel_mensal,
             **dados,
         )
     except Exception as e:
@@ -1172,6 +1522,18 @@ def minhas_solicitacoes():
         })
     except Exception as e:
         return jsonify({"ok": False, "msg": f"Erro ao buscar solicitações: {e}"}), 500
+
+
+@app.route("/solicitacoes/marcar-visualizadas", methods=["POST"])
+def marcar_solicitacoes_visualizadas():
+    if not usuario_supervisor():
+        return jsonify({"ok": False, "msg": "Não autorizado."}), 401
+
+    try:
+        total = marcar_solicitacoes_visualizadas_supervisor(session.get("usuario"))
+        return jsonify({"ok": True, "total_atualizadas": total})
+    except Exception as e:
+        return jsonify({"ok": False, "msg": f"Erro ao marcar notificações como visualizadas: {e}"}), 500
 
 
 @app.route("/atestados/meus", methods=["GET"])

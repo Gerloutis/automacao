@@ -35,11 +35,40 @@ textarea{width:100%;min-height:90px;margin-top:12px;border-radius:12px;border:1p
             </div>
             <span class="chip pending">{{ s.status }}</span>
         </div>
-        <div class="meta">Justificativa: {{ s.justificativa }}</div>
+        <div class="meta">Justificativa: {{ s.justificativa or '-' }}</div>
+
+        {% if s.tipo_solicitacao == 'adicionar_atestado' or s.tipo == 'adicionar_atestado' %}
+        <div class="two-col">
+            <div class="box">
+                <h4>Dados do atestado</h4>
+                <div class="kv">
+                    Data inicial: {{ s.dados_solicitados.data_inicio or '-' }}<br>
+                    Quantidade de dias: {{ s.dados_solicitados.quantidade_dias or '-' }}<br>
+                    Arquivo enviado:
+                    {% if s.arquivo_atestado_url %}
+                        <a href="{{ s.arquivo_atestado_url }}" target="_blank" rel="noopener noreferrer" style="color:#ffd59e;font-weight:700;">Ver imagem</a>
+                    {% else %}
+                        -
+                    {% endif %}
+                </div>
+            </div>
+            <div class="box">
+                <h4>Dados atuais</h4>
+                <div class="kv">
+                    Supervisor: {{ s.dados_anteriores.supervisor_atual or '-' }}<br>
+                    Coordenador: {{ s.dados_anteriores.coordenador_atual or '-' }}<br>
+                    Linha: {{ s.dados_anteriores.linha_atual or '-' }}<br>
+                    Ponto: {{ s.dados_anteriores.ponto_atual or '-' }}
+                </div>
+            </div>
+        </div>
+        {% else %}
         <div class="two-col">
             <div class="box"><h4>Dados atuais</h4><div class="kv">Linha: {{ s.dados_anteriores.linha_atual or '-' }}<br>Ponto: {{ s.dados_anteriores.ponto_atual or '-' }}<br>Supervisor: {{ s.dados_anteriores.supervisor_atual or '-' }}<br>Coordenador: {{ s.dados_anteriores.coordenador_atual or '-' }}</div></div>
             <div class="box"><h4>Solicitado</h4><div class="kv">Linha nova: {{ s.dados_solicitados.linha_nova or '-' }}<br>Ponto novo: {{ s.dados_solicitados.ponto_novo or '-' }}<br>Supervisor novo: {{ s.dados_solicitados.supervisor_novo or '-' }}<br>Coordenador novo: {{ s.dados_solicitados.coordenador_novo or '-' }}</div></div>
         </div>
+        {% endif %}
+
         <textarea id="resposta-{{ s.id }}" placeholder="Comentário do ADM (opcional)"></textarea>
         <div class="actions">
             <button class="btn" onclick="decidir({{ s.id }}, 'APROVAR')">Aprovar</button>
@@ -60,10 +89,19 @@ textarea{width:100%;min-height:90px;margin-top:12px;border-radius:12px;border:1p
         <div class="sol-top">
             <div>
                 <div class="sol-title">#{{ s.id }} • {{ s.tipo_label }}</div>
-                <div class="meta">{{ s.colaborador_nome }} • {{ s.data_solicitacao_fmt }}</div>
+                <div class="meta">{{ s.colaborador_nome }} • Matrícula {{ s.matricula }} • {{ s.data_solicitacao_fmt }}</div>
             </div>
             <span class="chip {{ s.status|lower }}">{{ s.status }}</span>
         </div>
+
+        {% if s.tipo_solicitacao == 'adicionar_atestado' or s.tipo == 'adicionar_atestado' %}
+        <div class="meta">Justificativa: {{ s.justificativa or '-' }}</div>
+        <div class="meta">Data inicial: {{ s.dados_solicitados.data_inicio or '-' }} • Quantidade de dias: {{ s.dados_solicitados.quantidade_dias or '-' }}</div>
+        {% if s.arquivo_atestado_url %}
+        <div class="meta">Arquivo: <a href="{{ s.arquivo_atestado_url }}" target="_blank" rel="noopener noreferrer" style="color:#ffd59e;font-weight:700;">Ver imagem</a></div>
+        {% endif %}
+        {% endif %}
+
         <div class="meta">Solicitante: {{ s.solicitado_por_nome or s.solicitado_por_usuario }} • Resposta: {{ s.resposta_aprovador or '-' }}</div>
         <div class="meta">Tratado por: {{ s.aprovado_por_nome or '-' }} • {{ s.data_resposta_fmt }}</div>
     </div>

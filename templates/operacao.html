@@ -1,53 +1,562 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-br">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel da Operação</title>
-    <link rel="stylesheet" href="../static/style.css">
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background: linear-gradient(180deg, #05080d 0%, #0b1118 100%);
+            color: #fff;
+        }
+
+        a { text-decoration: none; }
+
+        .topbar {
+            width: 100%;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            background: rgba(0, 0, 0, 0.25);
+        }
+
+        .topbar-inner {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 18px 28px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .topbar-left,
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .logo-title {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .user-info {
+            color: rgba(255,255,255,0.78);
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .btn-menu,
+        .btn-sair,
+        .btn-primary,
+        .btn-secondary {
+            border: none;
+            border-radius: 14px;
+            padding: 11px 18px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-menu,
+        .btn-primary {
+            background: linear-gradient(90deg, #ff8b1f, #ff5e2f);
+            color: #111;
+            box-shadow: 0 8px 24px rgba(255, 120, 40, 0.22);
+        }
+
+        .btn-sair {
+            background: linear-gradient(90deg, #ff6a4d, #f04a32);
+            color: #fff;
+        }
+
+        .btn-secondary {
+            background: rgba(255,255,255,0.08);
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.10);
+        }
+
+        .btn-secondary:hover,
+        .btn-menu:hover,
+        .btn-primary:hover,
+        .btn-sair:hover,
+        .menu-card:hover {
+            transform: translateY(-1px);
+            transition: 0.2s ease;
+        }
+
+        .page {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 34px 28px 50px 28px;
+        }
+
+        .hero-card {
+            background: linear-gradient(180deg, rgba(21,29,39,0.96), rgba(12,18,26,0.96));
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 24px;
+            padding: 28px;
+            box-shadow: 0 18px 45px rgba(0,0,0,0.30);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .hero-card::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(circle at top right, rgba(255,139,31,0.16), transparent 28%),
+                radial-gradient(circle at bottom left, rgba(57,126,255,0.12), transparent 35%);
+            pointer-events: none;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-bottom: 24px;
+        }
+
+        .hero-title {
+            font-size: 30px;
+            font-weight: 800;
+            margin: 0 0 10px 0;
+        }
+
+        .hero-subtitle {
+            margin: 0;
+            color: rgba(255,255,255,0.74);
+            font-size: 15px;
+            line-height: 1.5;
+            max-width: 780px;
+        }
+
+        .hero-badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 9px 12px;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.08);
+            color: #fff;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .menu-grid {
+            position: relative;
+            z-index: 1;
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 16px;
+        }
+
+        .menu-card {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 20px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            min-height: 168px;
+            box-shadow: 0 10px 28px rgba(0,0,0,0.18);
+        }
+
+        .menu-card-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 16px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            background: linear-gradient(135deg, rgba(255,139,31,0.22), rgba(255,94,47,0.18));
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .menu-card-title {
+            font-size: 20px;
+            font-weight: 800;
+            color: #fff;
+            margin: 0;
+            line-height: 1.25;
+        }
+
+        .menu-card-desc {
+            margin: 0;
+            color: rgba(255,255,255,0.70);
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .menu-card-footer {
+            margin-top: auto;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #ffb26d;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        @media (max-width: 1100px) {
+            .menu-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 900px) {
+            .topbar-inner {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .topbar-right {
+                width: 100%;
+            }
+
+            .page {
+                padding: 24px 16px 40px 16px;
+            }
+
+            .hero-card {
+                padding: 20px;
+                border-radius: 20px;
+            }
+
+            .hero-title {
+                font-size: 24px;
+            }
+
+            .menu-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .topbar-inner {
+                padding: 14px 14px;
+                gap: 12px;
+            }
+
+            .topbar-left,
+            .topbar-right {
+                width: 100%;
+                display: flex;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 10px;
+            }
+
+            .logo-title {
+                font-size: 16px;
+                line-height: 1.25;
+            }
+
+            .user-info {
+                width: 100%;
+                font-size: 13px;
+                line-height: 1.35;
+                word-break: break-word;
+                padding: 2px 2px 0;
+            }
+
+            .btn-menu,
+            .btn-sair,
+            .btn-primary,
+            .btn-secondary {
+                width: 100%;
+                min-height: 46px;
+                padding: 12px 14px;
+            }
+
+            .page {
+                padding: 16px 10px 28px;
+            }
+
+            .hero-card {
+                padding: 16px;
+                border-radius: 18px;
+            }
+
+            .hero-content {
+                gap: 14px;
+                margin-bottom: 16px;
+            }
+
+            .hero-title {
+                font-size: 22px;
+                line-height: 1.2;
+            }
+
+            .hero-subtitle {
+                font-size: 13px;
+                line-height: 1.45;
+            }
+
+            .hero-badges {
+                width: 100%;
+                display: grid;
+                grid-template-columns: 1fr;
+                gap: 8px;
+            }
+
+            .hero-badge {
+                width: 100%;
+                justify-content: center;
+                text-align: center;
+            }
+
+            .menu-card {
+                padding: 16px;
+                border-radius: 18px;
+                min-height: auto;
+            }
+
+            .menu-card-title {
+                font-size: 18px;
+            }
+
+            .menu-card-desc {
+                font-size: 13px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .page {
+                padding: 12px 8px 24px;
+            }
+
+            .hero-card {
+                padding: 14px;
+                border-radius: 16px;
+            }
+
+            .hero-title {
+                font-size: 20px;
+            }
+
+            .menu-card {
+                padding: 14px;
+                border-radius: 16px;
+            }
+
+            .menu-card-icon {
+                width: 48px;
+                height: 48px;
+                font-size: 22px;
+            }
+
+            .menu-card-title {
+                font-size: 17px;
+            }
+        }
+
+        .menu-card.disabled {
+            opacity: 0.45;
+            pointer-events: none;
+            filter: grayscale(1);
+            position: relative;
+        }
+
+        .menu-card.disabled:hover {
+            transform: none !important;
+        }
+
+        .badge-em-breve {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            font-size: 11px;
+            font-weight: 700;
+            background: linear-gradient(90deg, #ff8b1f, #ff5e2f);
+            color: #111;
+            padding: 4px 10px;
+            border-radius: 999px;
+            box-shadow: 0 4px 12px rgba(255,120,40,0.3);
+            letter-spacing: 0.3px;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(5, 8, 13, 0.78);
+            backdrop-filter: blur(6px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            padding: 20px;
+        }
+
+        .loading-overlay.show {
+            display: flex;
+        }
+
+        .loading-box {
+            width: min(92vw, 360px);
+            background: linear-gradient(180deg, rgba(21,29,39,0.98), rgba(12,18,26,0.98));
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 22px;
+            padding: 26px 22px;
+            box-shadow: 0 18px 45px rgba(0,0,0,0.35);
+            text-align: center;
+        }
+
+        .loading-spinner {
+            width: 54px;
+            height: 54px;
+            margin: 0 auto 16px auto;
+            border-radius: 50%;
+            border: 4px solid rgba(255,255,255,0.14);
+            border-top-color: #ff8b1f;
+            animation: girarLoader 0.9s linear infinite;
+        }
+
+        .loading-title {
+            margin: 0 0 8px 0;
+            font-size: 18px;
+            font-weight: 800;
+            color: #fff;
+        }
+
+        .loading-text {
+            margin: 0;
+            color: rgba(255,255,255,0.72);
+            font-size: 14px;
+            line-height: 1.45;
+        }
+
+        @keyframes girarLoader {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
 </head>
 <body>
+    <header class="topbar">
+        <div class="topbar-inner">
+            <div class="topbar-left">
+                <a class="btn-menu" href="/">Início</a>
+                <div class="logo-title">📣 Painel da Operação</div>
+            </div>
+            <div class="topbar-right">
+                <div class="user-info">Bem-vindo, Supervisor</div>
+                <a class="btn-sair" href="/logout">Sair</a>
+            </div>
+        </div>
+    </header>
 
-<div class="dashboard">
+    <main class="page">
+        <section class="hero-card">
+            <div class="hero-content">
+                <div>
+                    <h1 class="hero-title">Central da operação</h1>
+                    <p class="hero-subtitle">
+                        Acesse rapidamente as principais áreas do sistema para acompanhar a equipe,
+                        registrar presença, consultar indicadores e gerenciar rotinas da operação.
+                    </p>
+                </div>
 
-    <div class="topo">
-        <h2>Bem-vindo, Supervisor</h2>
-        <a href="/logout">Sair</a>
+            </div>
+
+            <div class="menu-grid">
+                <a href="/presenca" class="menu-card" onclick="abrirPresencaComLoader(event)">
+                    <div class="menu-card-icon">📋</div>
+                    <h3 class="menu-card-title">Realizar Presença</h3>
+                    <p class="menu-card-desc">Registrar a presença da equipe com visual moderno e acesso rápido às ações do dia.</p>
+                    <div class="menu-card-footer">Abrir módulo →</div>
+                </a>
+
+                <a href="/insumos" class="menu-card disabled">
+                    <span class="badge-em-breve">Em breve</span>
+                    <div class="menu-card-icon">📦</div>
+                    <h3 class="menu-card-title">Pedir Insumos</h3>
+                    <p class="menu-card-desc">Solicite materiais e acompanhe necessidades operacionais da área.</p>
+                    <div class="menu-card-footer">Abrir módulo →</div>
+                </a>
+
+                <a href="/equipe" class="menu-card disabled">
+                    <span class="badge-em-breve">Em breve</span>
+                    <div class="menu-card-icon">👥</div>
+                    <h3 class="menu-card-title">Acompanhar Equipe</h3>
+                    <p class="menu-card-desc">Consulte informações gerais da equipe e acompanhe o status dos colaboradores.</p>
+                    <div class="menu-card-footer">Abrir módulo →</div>
+                </a>
+
+                <a href="/indicadores" class="menu-card disabled">
+                    <span class="badge-em-breve">Em breve</span>
+                    <div class="menu-card-icon">📊</div>
+                    <h3 class="menu-card-title">Indicadores</h3>
+                    <p class="menu-card-desc">Veja resultados e métricas importantes para apoiar decisões da operação.</p>
+                    <div class="menu-card-footer">Abrir módulo →</div>
+                </a>
+
+                <a href="/relatorios" class="menu-card disabled">
+                    <span class="badge-em-breve">Em breve</span>
+                    <div class="menu-card-icon">🧾</div>
+                    <h3 class="menu-card-title">Relatórios</h3>
+                    <p class="menu-card-desc">Acesse relatórios operacionais e apoie o acompanhamento diário do time.</p>
+                    <div class="menu-card-footer">Abrir módulo →</div>
+                </a>
+
+                <a href="/configuracoes" class="menu-card disabled">
+                    <span class="badge-em-breve">Em breve</span>
+                    <div class="menu-card-icon">⚙️</div>
+                    <h3 class="menu-card-title">Configurações</h3>
+                    <p class="menu-card-desc">Gerencie ajustes gerais do sistema e personalize o ambiente de trabalho.</p>
+                    <div class="menu-card-footer">Abrir módulo →</div>
+                </a>
+            </div>
+        </section>
+    </main>
+    <div id="loadingOverlay" class="loading-overlay" aria-hidden="true">
+        <div class="loading-box">
+            <div class="loading-spinner"></div>
+            <h3 class="loading-title">Carregando presença</h3>
+            <p class="loading-text">Aguarde um instante enquanto abrimos a página.</p>
+        </div>
     </div>
+    <script>
+    function abrirPresencaComLoader(event) {
+        event.preventDefault();
 
-    <div class="cards">
+        const overlay = document.getElementById("loadingOverlay");
+        if (overlay) {
+            overlay.classList.add("show");
+            overlay.setAttribute("aria-hidden", "false");
+        }
 
-        <a href="/presenca" class="card">
-            <h3>📋 Realizar Presença</h3>
-            <p>Registrar presença da equipe</p>
-        </a>
+        const destino = event.currentTarget.getAttribute("href") || "/presenca";
 
-        <a href="/insumos" class="card">
-            <h3>📦 Pedir Insumos</h3>
-            <p>Solicitação de materiais</p>
-        </a>
-
-        <a href="/equipe" class="card">
-            <h3>👥 Acompanhar Equipe</h3>
-            <p>Status dos colaboradores</p>
-        </a>
-
-        <a href="/indicadores" class="card">
-            <h3>📊 Indicadores</h3>
-            <p>Resultados da operação</p>
-        </a>
-
-        <a href="/relatorios" class="card">
-            <h3>🧾 Relatórios</h3>
-            <p>Relatórios operacionais</p>
-        </a>
-
-        <a href="/configuracoes" class="card">
-            <h3>⚙️ Configurações</h3>
-            <p>Ajustes do sistema</p>
-        </a>
-
-    </div>
-
-</div>
-
+        setTimeout(() => {
+            window.location.href = destino;
+        }, 120);
+    }
+    </script>
 </body>
 </html>
