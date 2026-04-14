@@ -761,23 +761,6 @@
         padding: 16px;
       }
     }
-    .category-badge.afastamento_entrada {
-      background: #fff7ed;
-      color: #c2410c;
-      border-color: #fed7aa;
-    }
-
-    .category-badge.afastamento_retorno {
-      background: #ecfeff;
-      color: #0f766e;
-      border-color: #a5f3fc;
-    }
-
-    .category-badge.observacao {
-      background: #f8fafc;
-      color: #475569;
-      border-color: #cbd5e1;
-    }
   </style>
 </head>
 <body>
@@ -1822,6 +1805,16 @@
         showStatus(mainStatus, err.message, "error");
       }
     }
+
+    function openDetailsHC(itemEncoded) {
+      try {
+        const item = JSON.parse(decodeURIComponent(itemEncoded));
+        openDetailsModal(item);
+      } catch (err) {
+        console.error("Falha ao abrir detalhes da alteração:", err);
+      }
+    }
+
     window.confirmarAlteracaoHC = confirmarAlteracaoHC;
     window.openDetailsHC = openDetailsHC;
 
