@@ -1,5 +1,6 @@
 import os
 import io
+import re
 import time
 import threading
 from contextlib import redirect_stdout
@@ -24,6 +25,8 @@ SOLICITACOES_TABLE = os.getenv("SOLICITACOES_TABLE", "solicitacoes_colaborador")
 ATESTADOS_TABLE = os.getenv("ATESTADOS_TABLE", "atestados_colaborador")
 MAX_ATESTADO_BYTES = int(os.getenv("MAX_ATESTADO_BYTES", str(5 * 1024 * 1024)))
 PLANILHA_PRESENCA_ID = "1Qv9mI_vo0yA987Kabn-bUM6XaQq2IOs4dLZKAzwU8P8"
+HC_DEFAULT_SHEET_ID = "1VAuoQarh9M96VQnJt85444Asw2hWZoHlb82EmTYlnyw"
+HC_DEFAULT_TAB_NAME = "H.C. TT"
 
 MESES_PT = {
     1: "JANEIRO",
@@ -68,6 +71,1019 @@ TIPOS_SOLICITACAO = {
     }
 }
 
+@app.route("/planejamento")
+def planejamento():
+    if not usuario_planejamento():
+        return redirect(url_for("login"))
+    return render_template("planejamento.html")
+
+@app.route("/planejamento/hc-config", methods=["GET"])
+def planejamento_hc_config():
+    if not usuario_planejamento():
+        return jsonify({"ok": False, "msg": "Não autorizado."}), 401
+
+    return jsonify({
+        "ok": True,
+        "config": obter_config_hc()
+    })
+
+
+@app.route("/planejamento/hc-config/test", methods=["POST"])
+def planejamento_hc_test():
+    if not usuario_planejamento():
+        return jsonify({"ok": False, "msg": "Não autorizado."}), 401
+
+    try:
+        payload = request.get_json(force=True) or {}
+        sheet_input = payload.get("sheet_id") or payload.get("sheet_url")
+        tab_name = payload.get("tab_name")
+
+        dados = carregar_total_headcount(sheet_input, tab_name)
+
+        return jsonify({
+            "ok": True,
+            "msg": "Conexão testada com sucesso.",
+            "resultado": dados
+        })
+    except Exception as e:
+        return jsonify({
+            "ok": False,
+            "msg": "Falha ao testar a conexão.",
+            "detail": str(e)
+        }), 500
+
+
+@app.route("/planejamento/hc-config/connect", methods=["POST"])
+def planejamento_hc_connect():
+    if not usuario_planejamento():
+        return jsonify({"ok": False, "msg": "Não autorizado."}), 401
+
+    try:
+        payload = request.get_json(force=True) or {}
+        sheet_input = payload.get("sheet_id") or payload.get("sheet_url")
+        tab_name = safe_str(payload.get("tab_name"))
+
+        sheet_id = extrair_sheet_id(sheet_input)
+        if not tab_name:
+            raise ValueError("Informe o nome da aba.")
+
+        dados = carregar_total_headcount(sheet_id, tab_name)
+
+        session["hc_sheet_id"] = sheet_id
+        session["hc_tab_name"] = tab_name
+
+        return jsonify({
+            "ok": True,
+            "msg": "Base conectada com sucesso.",
+            "resultado": dados
+        })
+    except Exception as e:
+        return jsonify({
+            "ok": False,
+            "msg": "Não foi possível conectar a base.",
+            "detail": str(e)
+        }), 500
+
+
+@app.route("/planejamento/hc-total", methods=["GET"])
+def planejamento_hc_total():
+    if not usuario_planejamento():
+        return jsonify({"ok": False, "msg": "Não autorizado."}), 401
+
+    try:
+        dados = carregar_total_headcount()
+        return jsonify({
+            "ok": True,
+            "dados": dados
+        })
+    except Exception as e:
+        return jsonify({
+            "ok": False,
+            "msg": "Erro ao carregar o total do HeadCount.",
+            "detail": str(e)
+        }), 500
+    
+# =========================================================
+# HEADCOUNT / GESTÃO H.C.
+# =========================================================
+@app.route("/planejamento/hc-tabs", methods=["POST"])
+def planejamento_hc_tabs():
+    if not usuario_planejamento():
+        return jsonify({"ok": False, "msg": "Não autorizado."}), 401
+
+    try:
+        payload = request.get_json(force=True) or {}
+        sheet_input = payload.get("sheet_id") or payload.get("sheet_url")
+        sheet_id = extrair_sheet_id(sheet_input)
+
+        gc = ensure_gc()
+        sh = gc.open_by_key(sheet_id)
+
+        abas = [ws.title for ws in sh.worksheets()]
+
+        return jsonify({
+            "ok": True,
+            "sheet_id": sheet_id,
+            "spreadsheet_name": sh.title,
+            "tabs": abas
+        })
+    except Exception as e:
+        return jsonify({
+            "ok": False,
+            "msg": "Não foi possível listar as abas.",
+            "detail": str(e)
+        }), 500
+
+@app.route("/planejamento/hc-columns", methods=["POST"])
+def planejamento_hc_columns():
+    if not usuario_planejamento():
+        return jsonify({"ok": False, "msg": "Não autorizado."}), 401
+
+    try:
+        payload = request.get_json(force=True) or {}
+        sheet_input = payload.get("sheet_id") or payload.get("sheet_url")
+        tab_name = safe_str(payload.get("tab_name"))
+
+        sh, ws, sheet_id_final, tab_name_final = abrir_ws_hc(sheet_input, tab_name)
+        valores = ws.get_all_values()
+
+        if not valores:
+            return jsonify({
+                "ok": True,
+                "sheet_id": sheet_id_final,
+                "tab_name": tab_name_final,
+                "spreadsheet_name": sh.title,
+                "columns": []
+            })
+
+        headers = normalizar_headers(valores)
+
+        return jsonify({
+            "ok": True,
+            "sheet_id": sheet_id_final,
+            "tab_name": tab_name_final,
+            "spreadsheet_name": sh.title,
+            "columns": headers
+        })
+    except Exception as e:
+        return jsonify({
+            "ok": False,
+            "msg": "Erro ao carregar colunas.",
+            "detail": str(e)
+        }), 500
+
+@app.route("/planejamento/hc-column-values", methods=["POST"])
+def planejamento_hc_column_values():
+    if not usuario_planejamento():
+        return jsonify({"ok": False, "msg": "Não autorizado."}), 401
+
+    try:
+        payload = request.get_json(force=True) or {}
+        sheet_input = payload.get("sheet_id") or payload.get("sheet_url")
+        tab_name = safe_str(payload.get("tab_name"))
+        column_name = safe_str(payload.get("column_name"))
+
+        sh, ws, sheet_id_final, tab_name_final = abrir_ws_hc(sheet_input, tab_name)
+        valores = ws.get_all_values()
+
+        if not valores or len(valores) < 2:
+            return jsonify({
+                "ok": True,
+                "column_name": column_name,
+                "values": []
+            })
+
+        headers = normalizar_headers(valores)
+        linhas = valores[1:]
+        df = pd.DataFrame(linhas, columns=headers)
+
+        if df.empty:
+            return jsonify({
+                "ok": True,
+                "column_name": column_name,
+                "values": []
+            })
+
+        headers_upper = {str(c).strip().upper(): c for c in df.columns}
+        col_real = headers_upper.get(column_name.upper())
+
+        if not col_real:
+            raise ValueError(f"Coluna '{column_name}' não encontrada.")
+
+        unicos = []
+        vistos = set()
+
+        for valor in df[col_real].tolist():
+            txt = safe_str(valor)
+            chave = txt.upper()
+            if not txt or chave in vistos:
+                continue
+            vistos.add(chave)
+            unicos.append(txt)
+
+        return jsonify({
+            "ok": True,
+            "column_name": col_real,
+            "values": sorted(unicos, key=lambda x: x.upper())
+        })
+    except Exception as e:
+        return jsonify({
+            "ok": False,
+            "msg": "Erro ao carregar valores da coluna.",
+            "detail": str(e)
+        }), 500
+
+@app.route("/planejamento/hc-config/save", methods=["POST"])
+def planejamento_hc_config_save():
+    if not usuario_planejamento():
+        return jsonify({"ok": False, "msg": "Não autorizado."}), 401
+
+    try:
+        payload = request.get_json(force=True) or {}
+
+        sheet_input = payload.get("sheet_id") or payload.get("sheet_url")
+        tab_name = safe_str(payload.get("tab_name"))
+        filters = payload.get("filters") or {}
+
+        sheet_id = extrair_sheet_id(sheet_input)
+
+        if not sheet_id:
+            raise ValueError("Informe o link ou ID da planilha.")
+
+        if not tab_name:
+            raise ValueError("Informe o nome da aba.")
+
+        # testa se a planilha e a aba existem
+        _ = carregar_snapshot_headcount(sheet_id, tab_name)
+
+        session["hc_sheet_id"] = sheet_id
+        session["hc_tab_name"] = tab_name
+        session["hc_filters"] = filters
+        session.modified = True
+
+        global hc_monitor_cache
+        hc_monitor_cache = novo_cache_hc_monitor()
+
+        return jsonify({
+            "ok": True,
+            "msg": "Configuração salva com sucesso.",
+            "config": obter_config_hc(),
+        })
+
+    except Exception as e:
+        return jsonify({
+            "ok": False,
+            "msg": "Erro ao salvar configuração.",
+            "detail": str(e)
+        }), 500
+
+def carregar_total_headcount(sheet_id=None, tab_name=None):
+    sh, ws, sheet_id_final, tab_name_final = abrir_ws_hc(sheet_id, tab_name)
+    valores = ws.get_all_values()
+
+    if not valores or len(valores) < 2:
+        return {
+            "total_trabalhando": 0,
+            "sheet_id": sheet_id_final,
+            "tab_name": tab_name_final,
+            "spreadsheet_name": sh.title,
+            "total_linhas": 0,
+            "total_filtrado": 0,
+            "filters": session.get("hc_filters", {})
+        }
+
+    headers = normalizar_headers(valores)
+    linhas = valores[1:]
+    df = pd.DataFrame(linhas, columns=headers)
+
+    if df.empty:
+        return {
+            "total_trabalhando": 0,
+            "sheet_id": sheet_id_final,
+            "tab_name": tab_name_final,
+            "spreadsheet_name": sh.title,
+            "total_linhas": 0,
+            "total_filtrado": 0,
+            "filters": session.get("hc_filters", {})
+        }
+
+    df = df.dropna(how="all")
+    df = df[
+        df.apply(lambda row: any(safe_str(v) != "" for v in row.tolist()), axis=1)
+    ]
+
+    filtros = session.get("hc_filters", {}) or {}
+    df_filtrado = aplicar_filtros_df(df, filtros)
+
+    headers_upper = {str(c).strip().upper(): c for c in df_filtrado.columns}
+
+    col_situacao = None
+    candidatos_situacao = [
+        "DESCRIÇÃO (SITUAÇÃO)",
+        "DESCRICAO (SITUACAO)",
+        "SITUAÇÃO",
+        "SITUACAO",
+        "STATUS",
+    ]
+
+    for nome in candidatos_situacao:
+        if nome in headers_upper:
+            col_situacao = headers_upper[nome]
+            break
+
+    total_trabalhando = 0
+
+    if col_situacao:
+        total_trabalhando = int(
+            df_filtrado[col_situacao]
+            .astype(str)
+            .str.strip()
+            .str.upper()
+            .eq("TRABALHANDO")
+            .sum()
+        )
+    else:
+        total_trabalhando = len(df_filtrado)
+
+    return {
+        "total_trabalhando": total_trabalhando,
+        "sheet_id": sheet_id_final,
+        "tab_name": tab_name_final,
+        "spreadsheet_name": sh.title,
+        "total_linhas": int(len(df)),
+        "total_filtrado": int(len(df_filtrado)),
+        "filters": filtros
+    }
+def aplicar_filtros_df(df, filtros=None):
+    filtros = filtros or {}
+
+    if df is None or df.empty:
+        return df
+
+    df_filtrado = df.copy()
+    headers_upper = {str(c).strip().upper(): c for c in df_filtrado.columns}
+
+    for nome_coluna, valores_aceitos in filtros.items():
+        if not valores_aceitos:
+            continue
+
+        chave = safe_str(nome_coluna).upper()
+        col_real = headers_upper.get(chave)
+
+        if not col_real:
+            continue
+
+        valores_norm = {safe_str(v).upper() for v in valores_aceitos if safe_str(v)}
+        if not valores_norm:
+            continue
+
+        df_filtrado = df_filtrado[
+            df_filtrado[col_real].astype(str).str.strip().str.upper().isin(valores_norm)
+        ]
+
+    return df_filtrado
+def localizar_coluna_hc(headers_upper, candidatos):
+    for nome in candidatos:
+        if nome in headers_upper:
+            return headers_upper[nome]
+    return None
+
+
+def carregar_snapshot_headcount(sheet_id=None, tab_name=None):
+    sh, ws, sheet_id_final, tab_name_final = abrir_ws_hc(sheet_id, tab_name)
+    valores = ws.get_all_values()
+
+    filtros = session.get("hc_filters", {}) or {}
+
+    if not valores or len(valores) < 2:
+        return {
+            "sheet_id": sheet_id_final,
+            "tab_name": tab_name_final,
+            "spreadsheet_name": sh.title,
+            "snapshot": {},
+            "total_linhas": 0,
+            "total_filtrado": 0,
+            "filters": filtros,
+        }
+
+    headers = normalizar_headers(valores)
+    linhas = valores[1:]
+    df = pd.DataFrame(linhas, columns=headers)
+
+    if df.empty:
+        return {
+            "sheet_id": sheet_id_final,
+            "tab_name": tab_name_final,
+            "spreadsheet_name": sh.title,
+            "snapshot": {},
+            "total_linhas": 0,
+            "total_filtrado": 0,
+            "filters": filtros,
+        }
+
+    df = df.dropna(how="all")
+    df = df[
+        df.apply(lambda row: any(safe_str(v) != "" for v in row.tolist()), axis=1)
+    ]
+
+    df = aplicar_filtros_df(df, filtros)
+
+    headers_upper = {str(c).strip().upper(): c for c in df.columns}
+
+    col_matricula = localizar_coluna_hc(headers_upper, ["MATRÍCULA", "MATRICULA"])
+    if not col_matricula:
+        raise ValueError("Coluna MATRÍCULA não encontrada na planilha.")
+
+    col_nome = localizar_coluna_hc(headers_upper, ["NOME", "COLABORADOR"])
+    col_situacao = localizar_coluna_hc(headers_upper, [
+        "DESCRIÇÃO (SITUAÇÃO)",
+        "DESCRICAO (SITUACAO)",
+        "SITUAÇÃO",
+        "SITUACAO",
+        "STATUS",
+    ])
+    if not col_situacao:
+        raise ValueError("Coluna de situação não encontrada na planilha.")
+
+    col_cargo = localizar_coluna_hc(headers_upper, [
+        "TÍTULO REDUZIDO (CARGO)",
+        "TITULO REDUZIDO (CARGO)",
+        "CARGO",
+    ])
+    col_empresa = localizar_coluna_hc(headers_upper, ["EMPRESA", "AGÊNCIA", "AGENCIA"])
+    col_filial = localizar_coluna_hc(headers_upper, ["APELIDO (FILIAL)", "FILIAL"])
+    col_area = localizar_coluna_hc(headers_upper, ["ÁREA", "AREA"])
+    col_setor = localizar_coluna_hc(headers_upper, ["SETOR", "PROCESSO"])
+    col_tipo_contrato = localizar_coluna_hc(headers_upper, ["TIPO DE CONTRATO", "CONTRATO"])
+
+    snapshot = {}
+
+    for _, row in df.iterrows():
+        matricula = safe_str(row.get(col_matricula))
+        if not matricula:
+            continue
+
+        snapshot[matricula] = {
+            "matricula": matricula,
+            "nome": safe_str(row.get(col_nome)) if col_nome else "",
+            "situacao": safe_str(row.get(col_situacao)),
+            "cargo": safe_str(row.get(col_cargo)) if col_cargo else "",
+            "empresa": safe_str(row.get(col_empresa)) if col_empresa else "",
+            "filial": safe_str(row.get(col_filial)) if col_filial else "",
+            "area": safe_str(row.get(col_area)) if col_area else "",
+            "setor": safe_str(row.get(col_setor)) if col_setor else "",
+            "tipo_contrato": safe_str(row.get(col_tipo_contrato)) if col_tipo_contrato else "",
+        }
+
+    return {
+        "sheet_id": sheet_id_final,
+        "tab_name": tab_name_final,
+        "spreadsheet_name": sh.title,
+        "snapshot": snapshot,
+        "total_linhas": int(len(linhas)),
+        "total_filtrado": int(len(df)),
+        "filters": filtros,
+    }
+def normalize_upper(valor):
+    return safe_str(valor).strip().upper()
+
+
+def is_trabalhando(valor):
+    txt = normalize_upper(valor)
+    return txt == "TRABALHANDO"
+
+
+def is_desligado(valor):
+    txt = normalize_upper(valor)
+    return txt in {
+        "DEMITIDO", "DEMITIDA",
+        "DESLIGADO", "DESLIGADA"
+    }
+
+
+def is_afastado(valor):
+    txt = normalize_upper(valor)
+    return "AFAST" in txt or txt in {"AFASTADO", "AFASTADA"}
+
+
+def is_promovido(valor):
+    txt = normalize_upper(valor)
+    return "PROMOVID" in txt
+
+
+def is_efetivado_situacao(valor):
+    txt = normalize_upper(valor)
+    return "EFETIV" in txt
+
+
+def is_empresa_fisia(valor):
+    txt = normalize_upper(valor)
+    return "FISIA" in txt or "CENTAURO" in txt
+
+
+def is_empresa_agencia(valor):
+    txt = normalize_upper(valor)
+    if not txt:
+        return False
+    return not is_empresa_fisia(txt)
+
+def classificar_alteracao_hc(anterior, atual, tipo_base):
+    situacao_anterior = safe_str((anterior or {}).get("situacao"))
+    situacao_atual = safe_str((atual or {}).get("situacao"))
+    cargo_anterior = safe_str((anterior or {}).get("cargo"))
+    cargo_atual = safe_str((atual or {}).get("cargo"))
+    empresa_anterior = safe_str((anterior or {}).get("empresa"))
+    empresa_atual = safe_str((atual or {}).get("empresa"))
+
+    ant_trabalhando = is_trabalhando(situacao_anterior)
+    atu_trabalhando = is_trabalhando(situacao_atual)
+
+    ant_afastado = is_afastado(situacao_anterior)
+    atu_afastado = is_afastado(situacao_atual)
+
+    atu_desligado = is_desligado(situacao_atual)
+    atu_promovido = is_promovido(situacao_atual)
+    atu_efetivado = is_efetivado_situacao(situacao_atual)
+
+    # Novo colaborador
+    if tipo_base == "novo":
+        return "admissao", "Admissão"
+
+    # Saiu da base
+    if tipo_base == "removido":
+        if ant_trabalhando:
+            return "desligamento", "Desligamento"
+        return "observacao", "Observação"
+
+    # Trabalhando -> Demitido/Desligado
+    if ant_trabalhando and atu_desligado:
+        return "desligamento", "Desligamento"
+
+    # Trabalhando -> Afastado
+    if ant_trabalhando and atu_afastado:
+        return "afastamento_entrada", "Entrada em afastamento"
+
+    # Afastado -> Trabalhando
+    if ant_afastado and atu_trabalhando:
+        return "afastamento_retorno", "Retorno de afastamento"
+
+    # Trabalhando -> Efetivado
+    if ant_trabalhando and (atu_efetivado or (
+        is_empresa_agencia(empresa_anterior) and is_empresa_fisia(empresa_atual)
+    )):
+        return "efetivacao", "Efetivação"
+
+    # Trabalhando -> Promovido
+    if ant_trabalhando and (atu_promovido or (
+        cargo_anterior and cargo_atual and normalize_upper(cargo_anterior) != normalize_upper(cargo_atual)
+    )):
+        return "promocao", "Promoção"
+
+    # Qualquer outra alteração ligada a afastamento
+    if ant_afastado != atu_afastado:
+        return "afastamento", "Afastamento"
+
+    # Mudança genérica não mapeada
+    return "observacao", "Observação"
+
+
+def montar_mensagem_alteracao(categoria, nome_exibicao, anterior, atual):
+    situacao_anterior = safe_str((anterior or {}).get("situacao"))
+    situacao_atual = safe_str((atual or {}).get("situacao"))
+    cargo_anterior = safe_str((anterior or {}).get("cargo"))
+    cargo_atual = safe_str((atual or {}).get("cargo"))
+    empresa_anterior = safe_str((anterior or {}).get("empresa"))
+    empresa_atual = safe_str((atual or {}).get("empresa"))
+
+    if categoria == "admissao":
+        return f"{nome_exibicao} foi adicionado à base. Situação atual: '{situacao_atual}'."
+
+    if categoria == "desligamento":
+        return f"{nome_exibicao} mudou de '{situacao_anterior}' para '{situacao_atual or 'fora da base'}'."
+
+    if categoria == "afastamento_entrada":
+        return f"{nome_exibicao} entrou em afastamento: '{situacao_anterior}' → '{situacao_atual}'."
+
+    if categoria == "afastamento_retorno":
+        return f"{nome_exibicao} retornou de afastamento: '{situacao_anterior}' → '{situacao_atual}'."
+
+    if categoria == "promocao":
+        if cargo_anterior and cargo_atual and normalize_upper(cargo_anterior) != normalize_upper(cargo_atual):
+            return f"{nome_exibicao} mudou de cargo: '{cargo_anterior}' → '{cargo_atual}'."
+        return f"{nome_exibicao} foi promovido: '{situacao_anterior}' → '{situacao_atual}'."
+
+    if categoria == "efetivacao":
+        if empresa_anterior and empresa_atual and normalize_upper(empresa_anterior) != normalize_upper(empresa_atual):
+            return f"{nome_exibicao} foi efetivado: empresa '{empresa_anterior}' → '{empresa_atual}'."
+        return f"{nome_exibicao} foi efetivado: '{situacao_anterior}' → '{situacao_atual}'."
+
+    if categoria == "afastamento":
+        return f"{nome_exibicao} teve alteração relacionada a afastamento: '{situacao_anterior}' → '{situacao_atual}'."
+
+    return f"{nome_exibicao} teve uma alteração não mapeada: '{situacao_anterior}' → '{situacao_atual}'."
+
+def montar_detalhes_alteracao(categoria, anterior, atual):
+    campos = [
+        ("Situação anterior", safe_str((anterior or {}).get("situacao"))),
+        ("Situação atual", safe_str((atual or {}).get("situacao"))),
+        ("Cargo anterior", safe_str((anterior or {}).get("cargo"))),
+        ("Cargo atual", safe_str((atual or {}).get("cargo"))),
+        ("Empresa anterior", safe_str((anterior or {}).get("empresa"))),
+        ("Empresa atual", safe_str((atual or {}).get("empresa"))),
+        ("Filial anterior", safe_str((anterior or {}).get("filial"))),
+        ("Filial atual", safe_str((atual or {}).get("filial"))),
+        ("Área anterior", safe_str((anterior or {}).get("area"))),
+        ("Área atual", safe_str((atual or {}).get("area"))),
+        ("Setor anterior", safe_str((anterior or {}).get("setor"))),
+        ("Setor atual", safe_str((atual or {}).get("setor"))),
+    ]
+    return {
+        "categoria": categoria,
+        "antes": {k: v for k, v in campos if "anterior" in k.lower() and v},
+        "depois": {k: v for k, v in campos if "atual" in k.lower() and v},
+    }
+
+
+def comparar_snapshots_hc(snapshot_anterior, snapshot_atual):
+    alteracoes = []
+
+    matriculas_anteriores = set(snapshot_anterior.keys())
+    matriculas_atuais = set(snapshot_atual.keys())
+
+    novas = matriculas_atuais - matriculas_anteriores
+    removidas = matriculas_anteriores - matriculas_atuais
+    comuns = matriculas_anteriores & matriculas_atuais
+
+    for matricula in sorted(novas):
+        atual = snapshot_atual[matricula]
+        categoria, categoria_label = classificar_alteracao_hc(None, atual, "novo")
+        nome_exibicao = atual.get("nome", matricula)
+        alteracoes.append({
+            "tipo": "novo",
+            "categoria": categoria,
+            "categoria_label": categoria_label,
+            "matricula": matricula,
+            "nome": atual.get("nome", ""),
+            "situacao_anterior": "",
+            "situacao_atual": atual.get("situacao", ""),
+            "mensagem": montar_mensagem_alteracao(categoria, nome_exibicao, None, atual),
+            "detalhes": montar_detalhes_alteracao(categoria, None, atual),
+        })
+
+    for matricula in sorted(removidas):
+        anterior = snapshot_anterior[matricula]
+        categoria, categoria_label = classificar_alteracao_hc(anterior, None, "removido")
+        nome_exibicao = anterior.get("nome", matricula)
+        alteracoes.append({
+            "tipo": "removido",
+            "categoria": categoria,
+            "categoria_label": categoria_label,
+            "matricula": matricula,
+            "nome": anterior.get("nome", ""),
+            "situacao_anterior": anterior.get("situacao", ""),
+            "situacao_atual": "",
+            "mensagem": montar_mensagem_alteracao(categoria, nome_exibicao, anterior, None),
+            "detalhes": montar_detalhes_alteracao(categoria, anterior, None),
+        })
+
+    for matricula in sorted(comuns):
+        anterior = snapshot_anterior[matricula]
+        atual = snapshot_atual[matricula]
+
+        sit_ant = safe_str(anterior.get("situacao"))
+        sit_atual = safe_str(atual.get("situacao"))
+        cargo_ant = safe_str(anterior.get("cargo"))
+        cargo_atual = safe_str(atual.get("cargo"))
+        empresa_ant = safe_str(anterior.get("empresa"))
+        empresa_atual = safe_str(atual.get("empresa"))
+
+        if any([
+            normalize_upper(sit_ant) != normalize_upper(sit_atual),
+            normalize_upper(cargo_ant) != normalize_upper(cargo_atual),
+            normalize_upper(empresa_ant) != normalize_upper(empresa_atual),
+        ]):
+            categoria, categoria_label = classificar_alteracao_hc(anterior, atual, "situacao_alterada")
+            nome_exibicao = atual.get("nome", "") or anterior.get("nome", "") or matricula
+            alteracoes.append({
+                "tipo": "situacao_alterada",
+                "categoria": categoria,
+                "categoria_label": categoria_label,
+                "matricula": matricula,
+                "nome": atual.get("nome", "") or anterior.get("nome", ""),
+                "situacao_anterior": sit_ant,
+                "situacao_atual": sit_atual,
+                "mensagem": montar_mensagem_alteracao(categoria, nome_exibicao, anterior, atual),
+                "detalhes": montar_detalhes_alteracao(categoria, anterior, atual),
+            })
+
+    return alteracoes
+
+def contar_trabalhando_snapshot(snapshot):
+    return sum(
+        1 for item in (snapshot or {}).values()
+        if safe_str(item.get("situacao")).upper() == "TRABALHANDO"
+    )
+
+def impacto_alteracao_hc(alteracao):
+    tipo = safe_str(alteracao.get("tipo")).lower()
+    situacao_anterior = safe_str(alteracao.get("situacao_anterior")).upper()
+    situacao_atual = safe_str(alteracao.get("situacao_atual")).upper()
+
+    if tipo == "novo" and situacao_atual == "TRABALHANDO":
+        return 1
+
+    if tipo == "removido" and situacao_anterior == "TRABALHANDO":
+        return -1
+
+    if tipo == "situacao_alterada":
+        if situacao_anterior == "TRABALHANDO" and situacao_atual != "TRABALHANDO":
+            return -1
+        if situacao_anterior != "TRABALHANDO" and situacao_atual == "TRABALHANDO":
+            return 1
+
+    return 0
+
+def assinatura_alteracao_hc(alteracao):
+    return "|".join([
+        safe_str(alteracao.get("tipo")),
+        safe_str(alteracao.get("matricula")),
+        safe_str(alteracao.get("situacao_anterior")),
+        safe_str(alteracao.get("situacao_atual")),
+    ])
+
+def aplicar_confirmacao_alteracao(snapshot_confirmado, snapshot_atual, alteracao):
+    snapshot_confirmado = dict(snapshot_confirmado or {})
+    snapshot_atual = snapshot_atual or {}
+
+    matricula = safe_str(alteracao.get("matricula"))
+    tipo = safe_str(alteracao.get("tipo")).lower()
+
+    if not matricula:
+        return snapshot_confirmado
+
+    if tipo == "removido":
+        snapshot_confirmado.pop(matricula, None)
+        return snapshot_confirmado
+
+    if matricula in snapshot_atual:
+        snapshot_confirmado[matricula] = dict(snapshot_atual[matricula])
+
+    return snapshot_confirmado
+
+@app.route("/planejamento/hc-monitor", methods=["GET"])
+def planejamento_hc_monitor():
+    if not usuario_planejamento():
+        return jsonify({"ok": False, "msg": "Não autorizado."}), 401
+
+    try:
+        dados = carregar_snapshot_headcount()
+        snapshot_atual = dados["snapshot"]
+
+        global hc_monitor_cache
+
+        agora = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+
+        if not hc_monitor_cache["initialized"]:
+            hc_monitor_cache["snapshot_confirmado"] = dict(snapshot_atual)
+            hc_monitor_cache["snapshot_atual"] = dict(snapshot_atual)
+            hc_monitor_cache["total_confirmado"] = contar_trabalhando_snapshot(snapshot_atual)
+            hc_monitor_cache["last_check"] = agora
+            hc_monitor_cache["initialized"] = True
+            hc_monitor_cache["pendentes"] = []
+
+            return jsonify({
+                "ok": True,
+                "initialized": True,
+                "alteracoes": [],
+                "alteracoes_novas": [],
+                "last_check": hc_monitor_cache["last_check"],
+                "total_monitorados": len(snapshot_atual),
+                "total_confirmado": hc_monitor_cache["total_confirmado"],
+                "delta_pendente": 0,
+                "total_previsto": hc_monitor_cache["total_confirmado"],
+            })
+
+        snapshot_confirmado = hc_monitor_cache["snapshot_confirmado"]
+        alteracoes_brutas = comparar_snapshots_hc(snapshot_confirmado, snapshot_atual)
+        alteracoes_por_assinatura = {}
+
+        for alteracao in alteracoes_brutas:
+            assinatura = assinatura_alteracao_hc(alteracao)
+            alteracao["assinatura"] = assinatura
+            alteracao["impacto"] = impacto_alteracao_hc(alteracao)
+            alteracoes_por_assinatura[assinatura] = alteracao
+
+        pendentes_atuais = hc_monitor_cache.get("pendentes", []) or []
+        pendentes_por_assinatura = {item.get("assinatura"): item for item in pendentes_atuais}
+
+        novos_pendentes = []
+        alteracoes_novas = []
+
+        for assinatura, alteracao in alteracoes_por_assinatura.items():
+            if assinatura in pendentes_por_assinatura:
+                existente = pendentes_por_assinatura[assinatura]
+                existente["mensagem"] = alteracao.get("mensagem", existente.get("mensagem", ""))
+                existente["impacto"] = alteracao.get("impacto", existente.get("impacto", 0))
+                existente["nome"] = alteracao.get("nome", existente.get("nome", ""))
+                existente["categoria"] = alteracao.get("categoria", existente.get("categoria", "situacao_alterada"))
+                existente["categoria_label"] = alteracao.get("categoria_label", existente.get("categoria_label", "Mudança"))
+                existente["detalhes"] = alteracao.get("detalhes", existente.get("detalhes", {}))
+                novos_pendentes.append(existente)
+                continue
+
+            novo_item = {
+                "id": hc_monitor_cache["next_change_id"],
+                "tipo": alteracao.get("tipo"),
+                "categoria": alteracao.get("categoria", "situacao_alterada"),
+                "categoria_label": alteracao.get("categoria_label", "Mudança"),
+                "matricula": alteracao.get("matricula"),
+                "nome": alteracao.get("nome", ""),
+                "situacao_anterior": alteracao.get("situacao_anterior", ""),
+                "situacao_atual": alteracao.get("situacao_atual", ""),
+                "mensagem": alteracao.get("mensagem", "Alteração detectada."),
+                "detalhes": alteracao.get("detalhes", {}),
+                "impacto": alteracao.get("impacto", 0),
+                "assinatura": assinatura,
+                "detectado_em": agora,
+            }
+            hc_monitor_cache["next_change_id"] += 1
+            novos_pendentes.append(novo_item)
+            alteracoes_novas.append(novo_item)
+
+        hc_monitor_cache["snapshot_atual"] = dict(snapshot_atual)
+        hc_monitor_cache["pendentes"] = novos_pendentes
+        hc_monitor_cache["last_check"] = agora
+
+        delta_pendente = sum(int(item.get("impacto", 0)) for item in novos_pendentes)
+        total_confirmado = int(hc_monitor_cache.get("total_confirmado", 0))
+
+        return jsonify({
+            "ok": True,
+            "initialized": False,
+            "alteracoes": novos_pendentes,
+            "alteracoes_novas": alteracoes_novas,
+            "last_check": hc_monitor_cache["last_check"],
+            "total_monitorados": len(snapshot_atual),
+            "total_confirmado": total_confirmado,
+            "delta_pendente": delta_pendente,
+            "total_previsto": total_confirmado + delta_pendente,
+        })
+
+    except Exception as e:
+        return jsonify({
+            "ok": False,
+            "msg": "Erro ao monitorar alterações do HeadCount.",
+            "detail": str(e)
+        }), 500
+
+@app.route("/planejamento/hc-monitor/confirm", methods=["POST"])
+def planejamento_hc_monitor_confirm():
+    if not usuario_planejamento():
+        return jsonify({"ok": False, "msg": "Não autorizado."}), 401
+
+    try:
+        payload = request.get_json(force=True) or {}
+        change_id = int(payload.get("change_id") or 0)
+
+        if not change_id:
+            raise ValueError("Informe a alteração que deve ser confirmada.")
+
+        global hc_monitor_cache
+
+        pendentes = hc_monitor_cache.get("pendentes", []) or []
+        alteracao = next((item for item in pendentes if int(item.get("id", 0)) == change_id), None)
+
+        if not alteracao:
+            raise ValueError("Alteração não encontrada ou já confirmada.")
+
+        snapshot_confirmado = hc_monitor_cache.get("snapshot_confirmado", {})
+        snapshot_atual = hc_monitor_cache.get("snapshot_atual", {})
+
+        snapshot_confirmado = aplicar_confirmacao_alteracao(snapshot_confirmado, snapshot_atual, alteracao)
+        hc_monitor_cache["snapshot_confirmado"] = snapshot_confirmado
+        hc_monitor_cache["total_confirmado"] = contar_trabalhando_snapshot(snapshot_confirmado)
+        hc_monitor_cache["pendentes"] = [item for item in pendentes if int(item.get("id", 0)) != change_id]
+        hc_monitor_cache["last_check"] = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+
+        return jsonify({
+            "ok": True,
+            "msg": "Alteração confirmada com sucesso.",
+            "total_confirmado": hc_monitor_cache["total_confirmado"],
+        })
+
+    except Exception as e:
+        return jsonify({
+            "ok": False,
+            "msg": "Erro ao confirmar alteração do HeadCount.",
+            "detail": str(e)
+        }), 500
+def extrair_sheet_id(valor):
+    valor = safe_str(valor)
+    if not valor:
+        raise ValueError("Informe o link ou ID da planilha.")
+
+    match = re.search(r"/spreadsheets/d/([a-zA-Z0-9-_]+)", valor)
+    if match:
+        return match.group(1)
+
+    return valor
+
+
+def obter_config_hc():
+    return {
+        "sheet_id": session.get("hc_sheet_id", HC_DEFAULT_SHEET_ID),
+        "tab_name": session.get("hc_tab_name", HC_DEFAULT_TAB_NAME),
+        "filters": session.get("hc_filters", {}),
+    }
+def aplicar_filtros_df(df, filtros=None):
+    filtros = filtros or {}
+
+    if df is None or df.empty:
+        return df
+
+    df_filtrado = df.copy()
+    headers_upper = {str(c).strip().upper(): c for c in df_filtrado.columns}
+
+    for nome_coluna, valores_aceitos in filtros.items():
+        if not valores_aceitos:
+            continue
+
+        nome_coluna_norm = safe_str(nome_coluna).upper()
+        col_real = headers_upper.get(nome_coluna_norm)
+
+        if not col_real:
+            continue
+
+        valores_norm = {
+            safe_str(v).upper()
+            for v in valores_aceitos
+            if safe_str(v)
+        }
+
+        if not valores_norm:
+            continue
+
+        df_filtrado = df_filtrado[
+            df_filtrado[col_real]
+            .astype(str)
+            .str.strip()
+            .str.upper()
+            .isin(valores_norm)
+        ]
+
+    return df_filtrado
+def abrir_ws_hc(sheet_id=None, tab_name=None):
+    cfg = obter_config_hc()
+    sheet_id = extrair_sheet_id(sheet_id or cfg["sheet_id"])
+    tab_name = safe_str(tab_name or cfg["tab_name"])
+
+    if not tab_name:
+        raise ValueError("Informe o nome da aba.")
+
+    gc = ensure_gc()
+    sh = gc.open_by_key(sheet_id)
+    ws = sh.worksheet(tab_name)
+
+    return sh, ws, sheet_id, tab_name
+
+
+def aplicar_filtros_df(df, filtros=None):
+    filtros = filtros or {}
+
+    if df is None or df.empty:
+        return df
+
+    df_filtrado = df.copy()
+    headers_upper = {str(c).strip().upper(): c for c in df_filtrado.columns}
+
+    for nome_coluna, valores_aceitos in filtros.items():
+        if not valores_aceitos:
+            continue
+
+        nome_coluna_norm = safe_str(nome_coluna).upper()
+        col_real = headers_upper.get(nome_coluna_norm)
+
+        if not col_real:
+            continue
+
+        valores_norm = {
+            safe_str(v).upper()
+            for v in valores_aceitos
+            if safe_str(v)
+        }
+
+        if not valores_norm:
+            continue
+
+        df_filtrado = df_filtrado[
+            df_filtrado[col_real]
+            .astype(str)
+            .str.strip()
+            .str.upper()
+            .isin(valores_norm)
+        ]
+
+    return df_filtrado
 # =========================================================
 # BANCO / CONEXÃO
 # =========================================================
@@ -153,6 +1169,18 @@ _gc = None
 _lock = threading.Lock()
 to_percent_cache = {}
 
+def novo_cache_hc_monitor():
+    return {
+        "snapshot_confirmado": {},
+        "snapshot_atual": {},
+        "total_confirmado": 0,
+        "last_check": None,
+        "initialized": False,
+        "pendentes": [],
+        "next_change_id": 1,
+    }
+
+hc_monitor_cache = novo_cache_hc_monitor()
 
 def ensure_gc():
     global _gc
@@ -1640,12 +2668,6 @@ def entrar():
 # =========================================================
 # PLANEJAMENTO
 # =========================================================
-@app.route("/planejamento")
-def planejamento():
-    if not usuario_planejamento():
-        return redirect(url_for("login"))
-    return render_template("planejamento.html")
-
 
 @app.route("/verify", methods=["GET"])
 def verify():
