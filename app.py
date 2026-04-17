@@ -7,7 +7,7 @@ from contextlib import redirect_stdout
 from datetime import date, timedelta, datetime, timezone
 from calendar import monthrange
 from werkzeug.utils import secure_filename
-
+from datetime import datetime
 import pandas as pd
 import psycopg2
 from psycopg2.extras import Json, RealDictCursor
@@ -166,6 +166,7 @@ def planejamento_hc_total():
 # =========================================================
 # HEADCOUNT / GESTÃO H.C.
 # =========================================================
+
 @app.route("/planejamento/hc-tabs", methods=["POST"])
 def planejamento_hc_tabs():
     if not usuario_planejamento():
@@ -703,80 +704,288 @@ def montar_detalhes_alteracao(categoria, anterior, atual):
         "depois": {k: v for k, v in campos if "atual" in k.lower() and v},
     }
 
+#---- ADIÇÕES
 
+def carregar_snapshot_headcount_monitor(sheet_id=None, tab_name=None):
+    sh, ws, sheet_id_final, tab_name_final = abrir_ws_hc(sheet_id, tab_name)
+    valores = ws.get_all_values()
+
+    filtros = session.get("hc_filters", {}) or {}
+    filtros_monitor = dict(filtros)
+
+    # remove o filtro de situação só para monitoramento
+    for chave in list(filtros_monitor.keys()):
+        if safe_str(chave).strip().upper() in {
+            "DESCRIÇÃO (SITUAÇÃO)",
+            "DESCRICAO (SITUACAO)",
+            "SITUAÇÃO",
+            "SITUACAO",
+            "STATUS"
+        }:
+            filtros_monitor.pop(chave, None)
+
+    if not valores or len(valores) < 2:
+        return {
+            "sheet_id": sheet_id_final,
+            "tab_name": tab_name_final,
+            "spreadsheet_name": sh.title,
+            "snapshot": {},
+            "total_linhas": 0,
+            "total_filtrado": 0,
+            "filters": filtros_monitor,
+        }
+
+    headers = normalizar_headers(valores)
+    linhas = valores[1:]
+    df = pd.DataFrame(linhas, columns=headers)
+
+    if df.empty:
+        return {
+            "sheet_id": sheet_id_final,
+            "tab_name": tab_name_final,
+            "spreadsheet_name": sh.title,
+            "snapshot": {},
+            "total_linhas": 0,
+            "total_filtrado": 0,
+            "filters": filtros_monitor,
+        }
+
+    df = df.dropna(how="all")
+    df = df[
+        df.apply(lambda row: any(safe_str(v) != "" for v in row.tolist()), axis=1)
+    ]
+
+    df = aplicar_filtros_df(df, filtros_monitor)
+
+    headers_upper = {str(c).strip().upper(): c for c in df.columns}
+
+    col_matricula = localizar_coluna_hc(headers_upper, ["MATRÍCULA", "MATRICULA"])
+    if not col_matricula:
+        raise ValueError("Coluna MATRÍCULA não encontrada na planilha.")
+
+    col_nome = localizar_coluna_hc(headers_upper, ["NOME", "COLABORADOR"])
+    col_situacao = localizar_coluna_hc(headers_upper, [
+        "DESCRIÇÃO (SITUAÇÃO)",
+        "DESCRICAO (SITUACAO)",
+        "SITUAÇÃO",
+        "SITUACAO",
+        "STATUS",
+    ])
+    if not col_situacao:
+        raise ValueError("Coluna de situação não encontrada na planilha.")
+
+    col_cargo = localizar_coluna_hc(headers_upper, [
+        "TÍTULO REDUZIDO (CARGO)",
+        "TITULO REDUZIDO (CARGO)",
+        "CARGO",
+    ])
+    col_empresa = localizar_coluna_hc(headers_upper, ["EMPRESA", "AGÊNCIA", "AGENCIA"])
+    col_filial = localizar_coluna_hc(headers_upper, ["APELIDO (FILIAL)", "FILIAL"])
+    col_area = localizar_coluna_hc(headers_upper, ["ÁREA", "AREA"])
+    col_setor = localizar_coluna_hc(headers_upper, ["SETOR", "PROCESSO"])
+    col_tipo_contrato = localizar_coluna_hc(headers_upper, ["TIPO DE CONTRATO", "CONTRATO"])
+
+    snapshot = {}
+
+    for _, row in df.iterrows():
+        matricula = safe_str(row.get(col_matricula))
+        if not matricula:
+            continue
+
+        situacao_raw = safe_str(row.get(col_situacao))
+
+        snapshot[matricula] = {
+            "matricula": matricula,
+            "nome": safe_str(row.get(col_nome)) if col_nome else "",
+            "situacao": situacao_raw,
+            "situacao_norm": normalizar_situacao(situacao_raw),
+            "cargo": safe_str(row.get(col_cargo)) if col_cargo else "",
+            "empresa": safe_str(row.get(col_empresa)) if col_empresa else "",
+            "filial": safe_str(row.get(col_filial)) if col_filial else "",
+            "area": safe_str(row.get(col_area)) if col_area else "",
+            "setor": safe_str(row.get(col_setor)) if col_setor else "",
+            "tipo_contrato": safe_str(row.get(col_tipo_contrato)) if col_tipo_contrato else "",
+        }
+
+    return {
+        "sheet_id": sheet_id_final,
+        "tab_name": tab_name_final,
+        "spreadsheet_name": sh.title,
+        "snapshot": snapshot,
+        "total_linhas": int(len(linhas)),
+        "total_filtrado": int(len(df)),
+        "filters": filtros_monitor,
+    }
+
+def obter_chave_colaborador(item):
+    """
+    Prioriza matrícula.
+    Se não existir, tenta CPF.
+    Se também não existir, usa nome.
+    """
+    matricula = normalizar_texto(item.get("Matricula") or item.get("Matrícula") or item.get("matricula"))
+    cpf = normalizar_texto(item.get("CPF COLABORADOR") or item.get("cpf"))
+    nome = normalizar_texto(item.get("Nome") or item.get("COLABORADOR") or item.get("nome"))
+
+    if matricula:
+        return f"MAT:{matricula}"
+    if cpf:
+        return f"CPF:{cpf}"
+    return f"NOME:{nome}"
+
+def montar_snapshot_indexado(snapshot_lista):
+    """
+    Converte a lista retornada da planilha em dict indexado pelo colaborador.
+    """
+    indexado = {}
+
+    for item in snapshot_lista:
+        chave = obter_chave_colaborador(item)
+
+        nome = (
+            item.get("Nome")
+            or item.get("COLABORADOR")
+            or item.get("nome")
+            or "-"
+        )
+
+        matricula = (
+            item.get("Matricula")
+            or item.get("Matrícula")
+            or item.get("matricula")
+            or ""
+        )
+
+        situacao = (
+            item.get("Descrição (Situação)")
+            or item.get("descricao_situacao")
+            or item.get("situacao")
+            or ""
+        )
+
+        indexado[chave] = {
+            "chave": chave,
+            "nome": normalizar_texto(nome),
+            "matricula": normalizar_texto(matricula),
+            "situacao": normalizar_texto(situacao),
+            "situacao_norm": normalizar_situacao(situacao),
+            "linha_original": item
+        }
+
+    return indexado
+
+def classificar_alteracao(anterior, atual):
+    sit_ant = normalizar_situacao((anterior or {}).get("situacao"))
+    sit_nov = normalizar_situacao((atual or {}).get("situacao"))
+
+    if not anterior and atual and sit_nov == "trabalhando":
+        return {
+            "tipo": "admissao",
+            "nome": atual.get("nome"),
+            "matricula": atual.get("matricula"),
+            "situacao_anterior": "",
+            "situacao_nova": atual.get("situacao"),
+            "descricao": "Novo colaborador entrou na base como Trabalhando."
+        }
+
+    if not anterior and atual:
+        return {
+            "tipo": "observacao",
+            "nome": atual.get("nome"),
+            "matricula": atual.get("matricula"),
+            "situacao_anterior": "",
+            "situacao_nova": atual.get("situacao"),
+            "descricao": "Novo registro identificado na base."
+        }
+
+    if sit_ant == "trabalhando" and sit_nov == "demitido":
+        return {
+            "tipo": "desligamento",
+            "nome": atual.get("nome"),
+            "matricula": atual.get("matricula"),
+            "situacao_anterior": anterior.get("situacao"),
+            "situacao_nova": atual.get("situacao"),
+            "descricao": "Mudou de Trabalhando para Demitido."
+        }
+
+    if sit_ant == "trabalhando" and sit_nov == "afastado":
+        return {
+            "tipo": "afastamento",
+            "nome": atual.get("nome"),
+            "matricula": atual.get("matricula"),
+            "situacao_anterior": anterior.get("situacao"),
+            "situacao_nova": atual.get("situacao"),
+            "descricao": "Mudou de Trabalhando para Afastado."
+        }
+
+    if sit_ant == "afastado" and sit_nov == "trabalhando":
+        return {
+            "tipo": "retorno_afastamento",
+            "nome": atual.get("nome"),
+            "matricula": atual.get("matricula"),
+            "situacao_anterior": anterior.get("situacao"),
+            "situacao_nova": atual.get("situacao"),
+            "descricao": "Retornou de Afastado para Trabalhando."
+        }
+
+    if sit_ant != sit_nov:
+        return {
+            "tipo": "observacao",
+            "nome": atual.get("nome"),
+            "matricula": atual.get("matricula"),
+            "situacao_anterior": anterior.get("situacao"),
+            "situacao_nova": atual.get("situacao"),
+            "descricao": "Mudança de situação fora das regras principais."
+        }
+
+    return None
+
+# ------------
 def comparar_snapshots_hc(snapshot_anterior, snapshot_atual):
     alteracoes = []
 
-    matriculas_anteriores = set(snapshot_anterior.keys())
-    matriculas_atuais = set(snapshot_atual.keys())
+    chaves_anteriores = set(snapshot_anterior.keys())
+    chaves_atuais = set(snapshot_atual.keys())
 
-    novas = matriculas_atuais - matriculas_anteriores
-    removidas = matriculas_anteriores - matriculas_atuais
-    comuns = matriculas_anteriores & matriculas_atuais
+    # Novos registros
+    for chave in sorted(chaves_atuais - chaves_anteriores):
+        atual = snapshot_atual[chave]
+        alteracao = classificar_alteracao(None, atual)
+        if alteracao:
+            alteracoes.append(alteracao)
 
-    for matricula in sorted(novas):
-        atual = snapshot_atual[matricula]
-        categoria, categoria_label = classificar_alteracao_hc(None, atual, "novo")
-        nome_exibicao = atual.get("nome", matricula)
+    # Registros existentes com mudança
+    for chave in sorted(chaves_atuais & chaves_anteriores):
+        anterior = snapshot_anterior[chave]
+        atual = snapshot_atual[chave]
+
+        alteracao = classificar_alteracao(anterior, atual)
+        if alteracao:
+            alteracoes.append(alteracao)
+
+    for chave in sorted(chaves_anteriores - chaves_atuais):
+        anterior = snapshot_anterior[chave]
+
         alteracoes.append({
-            "tipo": "novo",
-            "categoria": categoria,
-            "categoria_label": categoria_label,
-            "matricula": matricula,
-            "nome": atual.get("nome", ""),
-            "situacao_anterior": "",
-            "situacao_atual": atual.get("situacao", ""),
-            "mensagem": montar_mensagem_alteracao(categoria, nome_exibicao, None, atual),
-            "detalhes": montar_detalhes_alteracao(categoria, None, atual),
+            "tipo": "observacao",
+            "nome": anterior.get("nome"),
+            "matricula": anterior.get("matricula"),
+            "situacao_anterior": anterior.get("situacao"),
+            "situacao_nova": "",
+            "descricao": "Registro deixou de aparecer na base monitorada."
         })
+    resumo = {
+        "admissao": sum(1 for a in alteracoes if a["tipo"] == "admissao"),
+        "desligamento": sum(1 for a in alteracoes if a["tipo"] == "desligamento"),
+        "afastamento": sum(1 for a in alteracoes if a["tipo"] == "afastamento"),
+        "retorno_afastamento": sum(1 for a in alteracoes if a["tipo"] == "retorno_afastamento"),
+        "observacao": sum(1 for a in alteracoes if a["tipo"] == "observacao"),
+    }
 
-    for matricula in sorted(removidas):
-        anterior = snapshot_anterior[matricula]
-        categoria, categoria_label = classificar_alteracao_hc(anterior, None, "removido")
-        nome_exibicao = anterior.get("nome", matricula)
-        alteracoes.append({
-            "tipo": "removido",
-            "categoria": categoria,
-            "categoria_label": categoria_label,
-            "matricula": matricula,
-            "nome": anterior.get("nome", ""),
-            "situacao_anterior": anterior.get("situacao", ""),
-            "situacao_atual": "",
-            "mensagem": montar_mensagem_alteracao(categoria, nome_exibicao, anterior, None),
-            "detalhes": montar_detalhes_alteracao(categoria, anterior, None),
-        })
-
-    for matricula in sorted(comuns):
-        anterior = snapshot_anterior[matricula]
-        atual = snapshot_atual[matricula]
-
-        sit_ant = safe_str(anterior.get("situacao"))
-        sit_atual = safe_str(atual.get("situacao"))
-        cargo_ant = safe_str(anterior.get("cargo"))
-        cargo_atual = safe_str(atual.get("cargo"))
-        empresa_ant = safe_str(anterior.get("empresa"))
-        empresa_atual = safe_str(atual.get("empresa"))
-
-        if any([
-            normalize_upper(sit_ant) != normalize_upper(sit_atual),
-            normalize_upper(cargo_ant) != normalize_upper(cargo_atual),
-            normalize_upper(empresa_ant) != normalize_upper(empresa_atual),
-        ]):
-            categoria, categoria_label = classificar_alteracao_hc(anterior, atual, "situacao_alterada")
-            nome_exibicao = atual.get("nome", "") or anterior.get("nome", "") or matricula
-            alteracoes.append({
-                "tipo": "situacao_alterada",
-                "categoria": categoria,
-                "categoria_label": categoria_label,
-                "matricula": matricula,
-                "nome": atual.get("nome", "") or anterior.get("nome", ""),
-                "situacao_anterior": sit_ant,
-                "situacao_atual": sit_atual,
-                "mensagem": montar_mensagem_alteracao(categoria, nome_exibicao, anterior, atual),
-                "detalhes": montar_detalhes_alteracao(categoria, anterior, atual),
-            })
-
-    return alteracoes
+    return {
+        "ultimas_alteracoes": alteracoes[:30],
+        "resumo": resumo
+    }
 
 def contar_trabalhando_snapshot(snapshot):
     return sum(
@@ -836,106 +1045,54 @@ def planejamento_hc_monitor():
         return jsonify({"ok": False, "msg": "Não autorizado."}), 401
 
     try:
-        dados = carregar_snapshot_headcount()
+        dados = carregar_snapshot_headcount_monitor()
         snapshot_atual = dados["snapshot"]
 
         global hc_monitor_cache
 
-        agora = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-
         if not hc_monitor_cache["initialized"]:
-            hc_monitor_cache["snapshot_confirmado"] = dict(snapshot_atual)
-            hc_monitor_cache["snapshot_atual"] = dict(snapshot_atual)
-            hc_monitor_cache["total_confirmado"] = contar_trabalhando_snapshot(snapshot_atual)
-            hc_monitor_cache["last_check"] = agora
+            hc_monitor_cache["snapshot"] = snapshot_atual
+            hc_monitor_cache["last_check"] = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
             hc_monitor_cache["initialized"] = True
-            hc_monitor_cache["pendentes"] = []
 
             return jsonify({
                 "ok": True,
                 "initialized": True,
-                "alteracoes": [],
-                "alteracoes_novas": [],
+                "monitor": {
+                    "ultimas_alteracoes": [],
+                    "resumo": {
+                        "admissao": 0,
+                        "desligamento": 0,
+                        "afastamento": 0,
+                        "retorno_afastamento": 0,
+                        "observacao": 0
+                    }
+                },
                 "last_check": hc_monitor_cache["last_check"],
-                "total_monitorados": len(snapshot_atual),
-                "total_confirmado": hc_monitor_cache["total_confirmado"],
-                "delta_pendente": 0,
-                "total_previsto": hc_monitor_cache["total_confirmado"],
+                "total_monitorados": len(snapshot_atual)
             })
 
-        snapshot_confirmado = hc_monitor_cache["snapshot_confirmado"]
-        alteracoes_brutas = comparar_snapshots_hc(snapshot_confirmado, snapshot_atual)
-        alteracoes_por_assinatura = {}
+        snapshot_anterior = hc_monitor_cache["snapshot"]
+        monitor = comparar_snapshots_hc(snapshot_anterior, snapshot_atual)
 
-        for alteracao in alteracoes_brutas:
-            assinatura = assinatura_alteracao_hc(alteracao)
-            alteracao["assinatura"] = assinatura
-            alteracao["impacto"] = impacto_alteracao_hc(alteracao)
-            alteracoes_por_assinatura[assinatura] = alteracao
-
-        pendentes_atuais = hc_monitor_cache.get("pendentes", []) or []
-        pendentes_por_assinatura = {item.get("assinatura"): item for item in pendentes_atuais}
-
-        novos_pendentes = []
-        alteracoes_novas = []
-
-        for assinatura, alteracao in alteracoes_por_assinatura.items():
-            if assinatura in pendentes_por_assinatura:
-                existente = pendentes_por_assinatura[assinatura]
-                existente["mensagem"] = alteracao.get("mensagem", existente.get("mensagem", ""))
-                existente["impacto"] = alteracao.get("impacto", existente.get("impacto", 0))
-                existente["nome"] = alteracao.get("nome", existente.get("nome", ""))
-                existente["categoria"] = alteracao.get("categoria", existente.get("categoria", "situacao_alterada"))
-                existente["categoria_label"] = alteracao.get("categoria_label", existente.get("categoria_label", "Mudança"))
-                existente["detalhes"] = alteracao.get("detalhes", existente.get("detalhes", {}))
-                novos_pendentes.append(existente)
-                continue
-
-            novo_item = {
-                "id": hc_monitor_cache["next_change_id"],
-                "tipo": alteracao.get("tipo"),
-                "categoria": alteracao.get("categoria", "situacao_alterada"),
-                "categoria_label": alteracao.get("categoria_label", "Mudança"),
-                "matricula": alteracao.get("matricula"),
-                "nome": alteracao.get("nome", ""),
-                "situacao_anterior": alteracao.get("situacao_anterior", ""),
-                "situacao_atual": alteracao.get("situacao_atual", ""),
-                "mensagem": alteracao.get("mensagem", "Alteração detectada."),
-                "detalhes": alteracao.get("detalhes", {}),
-                "impacto": alteracao.get("impacto", 0),
-                "assinatura": assinatura,
-                "detectado_em": agora,
-            }
-            hc_monitor_cache["next_change_id"] += 1
-            novos_pendentes.append(novo_item)
-            alteracoes_novas.append(novo_item)
-
-        hc_monitor_cache["snapshot_atual"] = dict(snapshot_atual)
-        hc_monitor_cache["pendentes"] = novos_pendentes
-        hc_monitor_cache["last_check"] = agora
-
-        delta_pendente = sum(int(item.get("impacto", 0)) for item in novos_pendentes)
-        total_confirmado = int(hc_monitor_cache.get("total_confirmado", 0))
+        hc_monitor_cache["snapshot"] = snapshot_atual
+        hc_monitor_cache["last_check"] = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
 
         return jsonify({
             "ok": True,
             "initialized": False,
-            "alteracoes": novos_pendentes,
-            "alteracoes_novas": alteracoes_novas,
+            "monitor": monitor,
             "last_check": hc_monitor_cache["last_check"],
-            "total_monitorados": len(snapshot_atual),
-            "total_confirmado": total_confirmado,
-            "delta_pendente": delta_pendente,
-            "total_previsto": total_confirmado + delta_pendente,
+            "total_monitorados": len(snapshot_atual)
         })
 
     except Exception as e:
         return jsonify({
             "ok": False,
-            "msg": "Erro ao monitorar alterações do HeadCount.",
+            "msg": "Erro ao monitorar alterações do HC.",
             "detail": str(e)
         }), 500
-
+        
 @app.route("/planejamento/hc-monitor/confirm", methods=["POST"])
 def planejamento_hc_monitor_confirm():
     if not usuario_planejamento():
@@ -1180,7 +1337,27 @@ def novo_cache_hc_monitor():
         "next_change_id": 1,
     }
 
-hc_monitor_cache = novo_cache_hc_monitor()
+# cache global do monitor
+hc_monitor_cache = {
+    "initialized": False,
+    "snapshot": {},
+    "last_check": None
+}
+
+def normalizar_texto(valor):
+    return str(valor or "").strip()
+
+def normalizar_situacao(valor):
+    v = normalizar_texto(valor).lower()
+
+    mapa = {
+        "trabalhando": "trabalhando",
+        "afastado": "afastado",
+        "demitido": "demitido",
+        "desligado": "demitido",
+    }
+
+    return mapa.get(v, v)
 
 def ensure_gc():
     global _gc
