@@ -1,0 +1,2536 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <title>Planejamento • Gestão H.C.</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root{
+      --bg:#f3f4f6;
+      --panel:#111827;
+      --panel-2:#1f2937;
+      --card:#ffffff;
+      --text:#0f172a;
+      --muted:#6b7280;
+      --line:#e5e7eb;
+      --brand:#0ea5e9;
+      --brand-2:#0284c7;
+      --success:#16a34a;
+      --danger:#dc2626;
+      --warning:#f59e0b;
+      --soft:#f8fafc;
+      --sidebar-w: 88px;
+      --sidebar-open: 240px;
+      --shadow: 0 10px 30px rgba(0,0,0,.05);
+      --radius-xl: 22px;
+      --radius-lg: 16px;
+      --radius-md: 12px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .app-shell {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      width: var(--sidebar-w);
+      background: linear-gradient(180deg, #0f172a, #111827);
+      color: #fff;
+      transition: width .25s ease;
+      overflow: hidden;
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    .sidebar.open { width: var(--sidebar-open); }
+
+    .sidebar-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 18px 16px;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+    }
+
+    .menu-toggle {
+      border: 0;
+      background: rgba(255,255,255,.08);
+      color: #fff;
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 18px;
+    }
+
+    .sidebar-title {
+      font-size: 16px;
+      font-weight: 700;
+      white-space: nowrap;
+      opacity: 0;
+      transition: opacity .2s ease;
+    }
+
+    .sidebar.open .sidebar-title,
+    .sidebar.open .menu-label { opacity: 1; }
+
+    .menu { padding: 14px 10px; }
+
+    .menu-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      width: 100%;
+      border: 0;
+      background: rgba(255,255,255,.06);
+      color: #fff;
+      border-radius: 14px;
+      padding: 14px 12px;
+      cursor: pointer;
+      margin-bottom: 10px;
+      text-align: left;
+      font-size: 15px;
+    }
+
+    .menu-item.active {
+      background: linear-gradient(135deg, var(--brand), var(--brand-2));
+    }
+
+    .menu-icon {
+      min-width: 24px;
+      text-align: center;
+      font-size: 18px;
+    }
+
+    .menu-label {
+      white-space: nowrap;
+      opacity: 0;
+      transition: opacity .2s ease;
+    }
+
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .topbar {
+      background: #fff;
+      border-bottom: 1px solid var(--line);
+      padding: 18px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .topbar h1 {
+      margin: 0;
+      font-size: 24px;
+    }
+
+    .topbar p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .config-btn {
+      border: 0;
+      background: #111827;
+      color: #fff;
+      padding: 12px 18px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: 700;
+      box-shadow: var(--shadow);
+    }
+
+    .content {
+      padding: 18px;
+    }
+
+    .workspace {
+      background: #f8fafc;
+      border: 1px solid #eceff3;
+      border-radius: 26px;
+      min-height: calc(100vh - 130px);
+      padding: 16px;
+    }
+
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(520px, 520px));
+      gap: 18px;
+      align-content: start;
+    }
+
+    .module-card {
+      background: var(--card);
+      border: 1px solid #edf1f5;
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .module-card.placeholder {
+      min-height: 280px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #94a3b8;
+      font-size: 14px;
+      border-style: dashed;
+      background: #fcfdff;
+    }
+
+    .module-header {
+      display: grid;
+      grid-template-columns: 52px 1fr 52px;
+      align-items: start;
+      gap: 14px;
+      padding: 18px 18px 10px;
+    }
+
+    .module-title {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .module-title h2 {
+      margin: 0;
+      font-size: 26px;
+      line-height: 1.1;
+    }
+
+    .module-title p {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+      max-width: 420px;
+    }
+
+    .module-icon-btn {
+      border: 0;
+      background: #0f172a;
+      color: white;
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      cursor: pointer;
+      flex-shrink: 0;
+      box-shadow: 0 8px 18px rgba(15,23,42,.14);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+
+    .module-icon-btn.secondary {
+      background: #e0f2fe;
+      color: #0369a1;
+      box-shadow: 0 8px 18px rgba(14,165,233,.18);
+    }
+
+    .module-body {
+      padding: 6px 18px 18px;
+    }
+
+    .hc-center {
+      text-align: center;
+      padding: 8px 0 16px;
+    }
+
+    .hc-label {
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 8px;
+    }
+
+    .hc-total-wrap{
+      display:flex;
+      align-items:flex-end;
+      justify-content:center;
+      gap:12px;
+      margin-bottom: 10px;
+      flex-wrap:wrap;
+    }
+
+    .hc-total {
+      font-size: 84px;
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: -2px;
+      color: #0f172a;
+      margin-bottom: 0;
+    }
+
+    .hc-total-preview{
+      font-size: 34px;
+      line-height: 1;
+      font-weight: 700;
+      color: rgba(15, 23, 42, 0.35);
+      transform: translateY(-6px);
+      display:none;
+    }
+
+    .hc-total-preview.show{
+      display:inline-block;
+    }
+
+    .hc-sub {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .changes-panel {
+      margin-top: 12px;
+      border: 1px solid #e5e7eb;
+      border-radius: 18px;
+      background: linear-gradient(180deg, #fcfdff, #f8fafc);
+      padding: 14px;
+    }
+
+    .changes-panel-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .changes-panel-head h4 {
+      margin: 0;
+      font-size: 15px;
+      color: #111827;
+    }
+
+    .changes-panel-sub {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .changes-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      min-height: 244px;
+      max-height: 244px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .changes-list::-webkit-scrollbar{
+      width:8px;
+    }
+
+    .changes-list::-webkit-scrollbar-thumb{
+      background:#cbd5e1;
+      border-radius:999px;
+    }
+
+    .change-card {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      border-radius: 14px;
+      padding: 12px 14px;
+      border: 1px solid #e5e7eb;
+      background: #fff;
+    }
+
+    .change-badge {
+      min-width: 96px;
+      text-align: center;
+      border-radius: 999px;
+      padding: 8px 10px;
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .change-badge.desligamento {
+      background: #fff1f2;
+      color: #be123c;
+      border: 1px solid #fecdd3;
+    }
+
+    .change-badge.admissao {
+      background: #ecfdf5;
+      color: #15803d;
+      border: 1px solid #bbf7d0;
+    }
+
+    .change-badge.afastamento {
+      background: #fff7ed;
+      color: #c2410c;
+      border: 1px solid #fed7aa;
+    }
+
+    .change-badge.outro {
+      background: #eff6ff;
+      color: #1d4ed8;
+      border: 1px solid #bfdbfe;
+    }
+
+    .change-content {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .change-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 4px;
+    }
+
+    .change-desc {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.45;
+      word-break: break-word;
+    }
+
+    .changes-empty {
+      border: 1px dashed #cbd5e1;
+      border-radius: 14px;
+      padding: 16px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+      background: #fff;
+    }
+
+
+    .change-group-card {
+      border: 1px solid #e5e7eb;
+      background: #fff;
+      border-radius: 16px;
+      padding: 14px;
+    }
+
+    .change-group-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .change-group-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+      flex: 1;
+    }
+
+    .change-group-meta {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .change-group-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 4px;
+    }
+
+    .change-group-desc {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .change-group-btn {
+      border: 1px solid #dbe2ea;
+      background: #f8fafc;
+      color: #0f172a;
+      border-radius: 10px;
+      padding: 8px 12px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .change-group-btn:hover {
+      background: #eff6ff;
+      border-color: #bfdbfe;
+    }
+
+    .change-group-panel {
+      margin-top: 12px;
+      border-top: 1px dashed #dbe2ea;
+      padding-top: 12px;
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .change-group-panel.show {
+      display: flex;
+    }
+
+    .change-subitem {
+      border: 1px solid #edf1f5;
+      background: #fbfdff;
+      border-radius: 12px;
+      padding: 10px 12px;
+    }
+
+    .change-subitem-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 4px;
+    }
+
+    .change-subitem-desc {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.45;
+      word-break: break-word;
+    }
+
+    .change-details-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-height: 56vh;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .change-details-list::-webkit-scrollbar{
+      width:8px;
+    }
+
+    .change-details-list::-webkit-scrollbar-thumb{
+      background:#cbd5e1;
+      border-radius:999px;
+    }
+
+    .change-details-summary {
+      font-size: 13px;
+      color: var(--muted);
+      margin: 8px 0 16px;
+    }
+
+    .text-danger { color: var(--danger); }
+    .text-success { color: var(--success); }
+    .text-warning { color: #c2410c; }
+    .text-neutral { color: #0f172a; }
+
+    .module-footer {
+      padding: 0 18px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    .btn {
+      border: 0;
+      border-radius: 12px;
+      padding: 10px 16px;
+      cursor: pointer;
+      font-weight: 700;
+      transition: .15s ease;
+      font-size: 14px;
+    }
+
+    .btn:hover { transform: translateY(-1px); }
+    .btn-primary { background: var(--brand); color: #fff; }
+    .btn-light { background: #e5e7eb; color: #111827; }
+    .btn-success { background: var(--success); color: #fff; }
+    .btn-danger { background: var(--danger); color: #fff; }
+
+    .status {
+      padding: 12px 14px;
+      border-radius: 12px;
+      display: none;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .status.show { display: block; }
+    .status.success { background: #dcfce7; color: #166534; }
+    .status.error { background: #fee2e2; color: #991b1b; }
+    .status.warning { background: #fef3c7; color: #92400e; }
+
+    .panel-toast{
+      position:absolute;
+      top:16px;
+      left:50%;
+      transform:translateX(-50%) translateY(-8px);
+      z-index:12;
+      min-width:280px;
+      max-width:calc(100% - 48px);
+      box-shadow:0 14px 28px rgba(15,23,42,.12);
+      opacity:0;
+      pointer-events:none;
+      transition:opacity .2s ease, transform .2s ease;
+    }
+
+    .panel-toast.show{
+      display:block;
+      opacity:1;
+      transform:translateX(-50%) translateY(0);
+    }
+
+    .wide-card {
+      margin-top: 18px;
+      background: var(--card);
+      border: 1px solid #edf1f5;
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow);
+      padding: 18px;
+    }
+
+    .wide-card h3 {
+      margin: 0 0 14px;
+      font-size: 18px;
+    }
+
+    .filter-summary {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .filter-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #eff6ff;
+      color: #1d4ed8;
+      border: 1px solid #bfdbfe;
+      border-radius: 999px;
+      padding: 10px 14px;
+      font-size: 13px;
+    }
+
+    .filter-pill button {
+      border: 0;
+      background: transparent;
+      color: inherit;
+      cursor: pointer;
+      font-weight: 700;
+      padding: 0;
+      font-size: 14px;
+    }
+
+    .empty-box {
+      border: 1px dashed #cbd5e1;
+      border-radius: 14px;
+      padding: 18px;
+      color: var(--muted);
+      font-size: 14px;
+      background: #fff;
+      width: 100%;
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, .45);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 50;
+    }
+
+    .modal-backdrop.show { display: flex; }
+
+    .modal {
+      width: 100%;
+      max-width: 1100px;
+      background: #fff;
+      border-radius: 22px;
+      box-shadow: 0 20px 50px rgba(0,0,0,.18);
+      overflow: hidden;
+    }
+
+    .modal-head {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .modal-head h3 {
+      margin: 0;
+      font-size: 20px;
+    }
+
+    .modal-close {
+      border: 0;
+      background: #f3f4f6;
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    .modal-body { padding: 24px; }
+
+    .wizard-steps {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 22px;
+    }
+
+    .wizard-step {
+      flex: 1;
+      min-width: 180px;
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 14px;
+      padding: 14px 16px;
+      font-size: 14px;
+    }
+
+    .wizard-step.active {
+      border-color: var(--brand);
+      background: #f0f9ff;
+    }
+
+    .wizard-step.done {
+      border-color: var(--success);
+      background: #f0fdf4;
+    }
+
+    .wizard-step strong {
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .wizard-panel { display: none; }
+    .wizard-panel.show { display: block; }
+
+    .field { margin-bottom: 16px; }
+
+    .field label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    .field input,
+    .field select {
+      width: 100%;
+      padding: 14px 16px;
+      border: 1px solid #d1d5db;
+      border-radius: 12px;
+      font-size: 14px;
+      outline: none;
+      background: #fff;
+    }
+
+    .field small {
+      display: block;
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 18px;
+    }
+
+    .loading {
+      opacity: .65;
+      pointer-events: none;
+    }
+
+    .split {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      align-items: start;
+    }
+
+    .selection-box {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 16px;
+      background: var(--soft);
+      min-height: 320px;
+    }
+
+    .selection-box h4 {
+      margin: 0 0 12px;
+      font-size: 16px;
+    }
+
+    .chips-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .chip {
+      border: 1px solid #d1d5db;
+      background: #fff;
+      color: #111827;
+      border-radius: 999px;
+      padding: 10px 14px;
+      font-size: 13px;
+      cursor: pointer;
+      user-select: none;
+      transition: .15s ease;
+    }
+
+    .chip:hover {
+      border-color: var(--brand);
+      background: #f0f9ff;
+    }
+
+    .chip.active {
+      background: var(--brand);
+      border-color: var(--brand);
+      color: #fff;
+    }
+
+    .hidden { display: none !important; }
+
+    .profile-strip{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+      margin-bottom:14px;
+      flex-wrap:wrap;
+    }
+
+    .profile-slot{
+      border:1px solid #dbe2ea;
+      background:#f8fafc;
+      color:#0f172a;
+      border-radius:14px;
+      padding:10px 14px;
+      min-height:46px;
+      min-width:110px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      cursor:pointer;
+      font-weight:700;
+      font-size:13px;
+      transition:.15s ease;
+    }
+
+    .profile-slot:hover{
+      transform:translateY(-1px);
+      border-color:#93c5fd;
+      background:#eff6ff;
+    }
+
+    .profile-slot.active{
+      background:linear-gradient(135deg, var(--brand), var(--brand-2));
+      color:#fff;
+      border-color:transparent;
+      box-shadow:0 10px 24px rgba(14,165,233,.18);
+    }
+
+    .profile-slot.empty{
+      border-style:dashed;
+      color:var(--muted);
+      background:#fff;
+    }
+
+    .profile-slot small{
+      display:block;
+      font-size:11px;
+      font-weight:600;
+      opacity:.82;
+      margin-top:2px;
+    }
+
+    .profile-slot-text{
+      display:flex;
+      flex-direction:column;
+      align-items:flex-start;
+      line-height:1.2;
+      min-width:0;
+    }
+
+    .profile-slot-text span,
+    .profile-slot-text small{
+      max-width:132px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+
+    .compact-filters-wrap{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      margin-bottom:12px;
+      min-height:44px;
+    }
+
+    .compact-filters-nav{
+      border:1px solid #dbe2ea;
+      background:#fff;
+      color:#0f172a;
+      width:34px;
+      height:34px;
+      border-radius:999px;
+      cursor:pointer;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:16px;
+      flex-shrink:0;
+    }
+
+    .compact-filters-nav.hidden{
+      display:none !important;
+    }
+
+    .compact-filters-viewport{
+      flex:1;
+      min-width:0;
+      overflow:hidden;
+    }
+
+    .compact-filters-track{
+      display:grid;
+      grid-template-columns: repeat(var(--filter-cols, 3), minmax(0, 1fr));
+      align-items:center;
+      gap:8px;
+      width:100%;
+    }
+
+    .compact-filter-pill{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:6px;
+      height:36px;
+      padding:0 14px;
+      border-radius:999px;
+      border:1px solid #bfdbfe;
+      background:#eff6ff;
+      color:#1d4ed8;
+      font-size:13px;
+      white-space:nowrap;
+      min-width:0;
+      width:100%;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+
+    .compact-filter-pill strong{
+      display:none;
+    }
+
+    .compact-filter-empty{
+      color:var(--muted);
+      font-size:13px;
+      padding:8px 2px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+
+    .filter-quick-row{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom:2px;
+      flex-wrap:wrap;
+    }
+
+    .filter-quick-row h4{
+      margin:0;
+      font-size:14px;
+      color:#0f172a;
+    }
+
+    .field-inline-grid{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:14px;
+      margin-bottom:16px;
+    }
+
+    .toggle-manual {
+      margin-top: 10px;
+      display: inline-block;
+      color: var(--brand-2);
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .filter-box-inline{
+      margin-top: 6px;
+      padding: 14px;
+      border: 1px solid #e5e7eb;
+      border-radius: 16px;
+      background: #f8fafc;
+    }
+
+    .filter-box-head{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom:12px;
+    }
+
+    .filter-box-head h4{
+      margin:0;
+      font-size:15px;
+    }
+
+    .btn-sm{
+      padding: 8px 12px;
+      font-size: 13px;
+    }
+    .hc-module{
+        position: relative;
+      }
+
+      .panel-loading{
+        position: absolute;
+        inset: 0;
+        background: rgba(255,255,255,.72);
+        backdrop-filter: blur(2px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 5;
+        border-radius: var(--radius-xl);
+      }
+
+      .panel-loading.hidden{
+        display: none;
+      }
+
+      .panel-loading-box{
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        background: #ffffff;
+        padding: 18px 22px;
+        border-radius: 16px;
+        box-shadow: 0 10px 30px rgba(0,0,0,.08);
+        font-size: 14px;
+        color: var(--muted);
+      }
+
+      .spinner{
+        width: 34px;
+        height: 34px;
+        border: 4px solid #e5e7eb;
+        border-top: 4px solid var(--brand);
+        border-radius: 50%;
+        animation: spin .8s linear infinite;
+      }
+
+      @keyframes spin{
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+      }
+    @media (max-width: 1200px) {
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 980px) {
+      .split {
+        grid-template-columns: 1fr;
+      }
+
+      .module-header {
+        grid-template-columns: 44px 1fr 44px;
+      }
+
+      .change-card {
+        flex-direction: column;
+      }
+
+      .profile-strip{
+        gap:8px;
+      }
+
+      .profile-slot{
+        min-width:calc(50% - 4px);
+      }
+    }
+
+    @media (max-width: 768px) {
+      .topbar { padding: 16px; }
+      .content { padding: 12px; }
+      .workspace { padding: 12px; }
+      .module-title h2 { font-size: 22px; }
+      .hc-total { font-size: 64px; }
+      .modal-body, .modal-head { padding: 16px; }
+      .profile-slot{ min-width:100%; }
+      .compact-filters-wrap{ gap:6px; }
+      .compact-filter-pill{ max-width:260px; overflow:hidden; text-overflow:ellipsis; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <aside id="sidebar" class="sidebar">
+      <div class="sidebar-header">
+        <button id="toggleSidebar" class="menu-toggle" title="Abrir menu">☰</button>
+        <div class="sidebar-title">Planejamento</div>
+      </div>
+
+      <nav class="menu">
+        <button class="menu-item active" type="button">
+          <span class="menu-icon">👥</span>
+          <span class="menu-label">Gestão H.C.</span>
+        </button>
+      </nav>
+    </aside>
+
+    <section class="main">
+      <header class="topbar">
+        <div>
+          <h1>Gestão H.C.</h1>
+          <p>Painel principal com módulos independentes de monitoramento.</p>
+        </div>
+
+        <button id="openConfig" class="config-btn" type="button">⚙ Configuração</button>
+      </header>
+
+      <main class="content">
+        <section class="workspace">
+          <div class="dashboard-grid">
+            <!-- MÓDULO INDIVIDUAL: HEADCOUNT -->
+            <section class="module-card hc-module" id="hcModule">
+              <div id="hcPanelLoading" class="panel-loading hidden">
+                <div class="panel-loading-box">
+                  <div class="spinner"></div>
+                  <div>Carregando HeadCount...</div>
+                </div>
+              </div>
+
+              <div class="module-header">
+                <button id="reloadIconBtn" class="module-icon-btn secondary" type="button" title="Atualizar painel" aria-label="Atualizar painel">↻</button>
+                <div class="module-title">
+                  <h2>HeadCount monitorado</h2>
+                  <p>
+                    Este painel é individual. A planilha, a aba e os filtros usados aqui
+                    pertencem somente a este módulo.
+                  </p>
+                </div>
+
+                <button id="openConfigModule" class="module-icon-btn" type="button" title="Configurar painel" aria-label="Configurar painel">⚙</button>
+              </div>
+
+              <div class="module-body">
+                <div class="profile-strip" id="filterProfilesStrip"></div>
+
+                <div class="filter-quick-row">
+                  <h4 id="activeFiltersTitle">0 filtros ativos</h4>
+                  <button id="openFilterEditorTop" class="btn btn-light btn-sm" type="button">Alterar filtros</button>
+                </div>
+
+                <div class="compact-filters-wrap">
+                  <button id="filtersPrev" class="compact-filters-nav hidden" type="button" aria-label="Ver filtros anteriores">◀</button>
+                  <div class="compact-filters-viewport">
+                    <div id="activeFiltersTrack" class="compact-filters-track"></div>
+                  </div>
+                  <button id="filtersNext" class="compact-filters-nav hidden" type="button" aria-label="Ver próximos filtros">▶</button>
+                </div>
+
+                <div class="hc-center">
+                  <div class="hc-label">Total atual com os filtros ativos</div>
+                  <div class="hc-total-wrap">
+                    <div id="hcTotal" class="hc-total">--</div>
+                    <div id="hcProjectedTotal" class="hc-total-preview" title="Total sugerido pelas alterações do dia"></div>
+                  </div>
+                  <div id="hcSub" class="hc-sub">Carregando dados da base...</div>
+                </div>
+
+                <div class="changes-panel">
+                  <div class="changes-panel-head">
+                    <h4>Alterações identificadas</h4>
+                    <div class="changes-panel-sub" id="changesPanelSub">Aguardando monitoramento...</div>
+                  </div>
+                  <div id="changesList" class="changes-list">
+                    <div class="changes-empty">Nenhuma alteração detectada até o momento.</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="module-footer">
+                <div id="mainStatus" class="status panel-toast"></div>
+              </div>
+            </section>
+
+            <!-- ESPAÇO RESERVADO PARA FUTURO PAINEL -->
+            <section class="module-card placeholder">
+              Futuro painel: Turnover / outro módulo
+            </section>
+          </div>
+        </section>
+      </main>
+    </section>
+  </div>
+  <!-- MODAL: CONFIGURAÇÃO DO PAINEL -->
+  <div id="configModal" class="modal-backdrop">
+    <div class="modal">
+      <div class="modal-head">
+        <h3>Configurar painel</h3>
+        <button id="closeConfig" class="modal-close" type="button">×</button>
+      </div>
+
+      <div class="modal-body">
+        <div id="configStatus" class="status"></div>
+
+        <div class="field">
+          <label for="sheetInput">Link ou ID da planilha</label>
+          <input id="sheetInput" type="text" placeholder="Cole aqui o link completo ou o ID da planilha" />
+          <small>Ex.: https://docs.google.com/spreadsheets/d/... ou apenas o ID.</small>
+        </div>
+
+        <div class="field">
+          <label for="tabSelect">Escolha a aba</label>
+          <select id="tabSelect">
+            <option value="">Selecione uma aba</option>
+          </select>
+          <small id="tabSelectHelp">O sistema tenta buscar automaticamente as abas da planilha.</small>
+        </div>
+
+        <div class="field hidden" id="manualTabField">
+          <label for="tabInputManual">Digite o nome da aba</label>
+          <input id="tabInputManual" type="text" placeholder="Ex.: H.C. TT" />
+          <small>Use esta opção se preferir digitar manualmente.</small>
+        </div>
+
+        <span id="toggleManualTab" class="toggle-manual">Digitar a aba manualmente</span>
+
+        <div class="mini-note" id="sheetPreviewText" style="margin-top:12px;">Nenhuma planilha validada ainda.</div>
+
+        <div class="modal-actions">
+          <button id="btnBuscarAbas" class="btn btn-primary" type="button">Buscar abas</button>
+          <button id="btnSavePanelConfig" class="btn btn-success" type="button">Salvar painel</button>
+          <button id="btnCancelarConfig" class="btn btn-light" type="button">Cancelar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: FILTROS -->
+  <div id="filterModal" class="modal-backdrop">
+    <div class="modal">
+      <div class="modal-head">
+        <h3>Alterar filtros</h3>
+        <button id="closeFilterModal" class="modal-close" type="button">×</button>
+      </div>
+
+      <div class="modal-body">
+        <div id="filterStatus" class="status"></div>
+
+        <div class="selection-box" style="min-height:auto; margin-bottom:18px;">
+          <h4>Perfil de filtro</h4>
+          <div class="field-inline-grid">
+            <div class="field" style="margin-bottom:0;">
+              <label for="filterProfileName">Nome do perfil</label>
+              <input id="filterProfileName" type="text" maxlength="40" placeholder="Ex.: Warehouse Trabalhando" />
+              <small>Você pode salvar até 3 perfis diferentes para alternar mais rápido.</small>
+            </div>
+          </div>
+        </div>
+
+        <div class="split">
+          <div class="selection-box">
+            <h4>Colunas disponíveis para filtro</h4>
+            <div id="columnsBox" class="chips-grid"></div>
+            <div id="columnsEmpty" class="empty-box hidden">Nenhuma coluna encontrada.</div>
+          </div>
+
+          <div class="selection-box">
+            <h4>Valores da coluna selecionada</h4>
+            <div id="selectedColumnLabel" class="mini-note" style="margin-top:0;">Nenhuma coluna selecionada.</div>
+            <div style="height: 12px;"></div>
+            <div id="columnValuesBox" class="chips-grid"></div>
+            <div id="valuesEmpty" class="empty-box">Selecione uma coluna para ver os valores.</div>
+          </div>
+        </div>
+
+        <div style="height: 18px;"></div>
+
+        <div class="selection-box" style="min-height:auto;">
+          <h4>Filtros escolhidos</h4>
+          <div id="selectedFiltersSummary" class="filter-summary">
+            <div class="empty-box">Nenhum filtro montado ainda.</div>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button id="btnClearFilters" class="btn btn-danger" type="button">Excluir filtro</button>
+          <button id="btnSaveFiltersOnly" class="btn btn-success" type="button">Salvar filtros</button>
+          <button id="btnCancelarFilter" class="btn btn-light" type="button">Cancelar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="changeDetailsModal" class="modal-backdrop">
+    <div class="modal">
+      <div class="modal-head">
+        <h3 id="changeDetailsTitle">Detalhes das alterações</h3>
+        <button id="closeChangeDetailsModal" class="modal-close" type="button">×</button>
+      </div>
+
+      <div class="modal-body">
+        <div id="changeDetailsSummary" class="change-details-summary">Nenhum detalhe carregado.</div>
+        <div id="changeDetailsList" class="change-details-list">
+          <div class="changes-empty">Nenhuma alteração encontrada.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  const DEFAULT_FILTERS = {
+    "Área": ["WAREHOUSE"],
+    "Descrição (Situação)": ["Trabalhando"],
+    "Apelido (Filial)": ["CD 2103 | FISIA"]
+  };
+
+  const sidebar = document.getElementById("sidebar");
+  const toggleSidebar = document.getElementById("toggleSidebar");
+
+  const openConfig = document.getElementById("openConfig");
+  const reloadIconBtn = document.getElementById("reloadIconBtn");
+  const openConfigModule = document.getElementById("openConfigModule");
+  const openFilterEditor = document.getElementById("openFilterEditor");
+  const openFilterEditorTop = document.getElementById("openFilterEditorTop");
+
+  const configModal = document.getElementById("configModal");
+  const filterModal = document.getElementById("filterModal");
+
+  const closeConfig = document.getElementById("closeConfig");
+  const closeFilterModal = document.getElementById("closeFilterModal");
+
+  const btnCancelarConfig = document.getElementById("btnCancelarConfig");
+  const btnCancelarFilter = document.getElementById("btnCancelarFilter");
+
+  const btnBuscarAbas = document.getElementById("btnBuscarAbas");
+  const btnSavePanelConfig = document.getElementById("btnSavePanelConfig");
+  const btnSaveFiltersOnly = document.getElementById("btnSaveFiltersOnly");
+  const btnClearFilters = document.getElementById("btnClearFilters");
+
+  const hcTotal = document.getElementById("hcTotal");
+  const hcProjectedTotal = document.getElementById("hcProjectedTotal");
+  const hcSub = document.getElementById("hcSub");
+  const activeFiltersTrack = document.getElementById("activeFiltersTrack");
+  const filtersPrev = document.getElementById("filtersPrev");
+  const filtersNext = document.getElementById("filtersNext");
+  const filterProfilesStrip = document.getElementById("filterProfilesStrip");
+  const mainStatus = document.getElementById("mainStatus");
+  const changesList = document.getElementById("changesList");
+  const changesPanelSub = document.getElementById("changesPanelSub");
+
+  const configStatus = document.getElementById("configStatus");
+  const filterStatus = document.getElementById("filterStatus");
+
+  const sheetInput = document.getElementById("sheetInput");
+  const tabSelect = document.getElementById("tabSelect");
+  const tabInputManual = document.getElementById("tabInputManual");
+  const manualTabField = document.getElementById("manualTabField");
+  const toggleManualTab = document.getElementById("toggleManualTab");
+  const sheetPreviewText = document.getElementById("sheetPreviewText");
+
+  const columnsBox = document.getElementById("columnsBox");
+  const columnValuesBox = document.getElementById("columnValuesBox");
+  const selectedColumnLabel = document.getElementById("selectedColumnLabel");
+  const selectedFiltersSummary = document.getElementById("selectedFiltersSummary");
+  const activeFiltersTitle = document.getElementById("activeFiltersTitle");
+  const filterProfileName = document.getElementById("filterProfileName");
+  const columnsEmpty = document.getElementById("columnsEmpty");
+  const valuesEmpty = document.getElementById("valuesEmpty");
+
+  const hcPanelLoading = document.getElementById("hcPanelLoading");
+
+  const wizardState = {
+    sheet_id: "",
+    spreadsheet_name: "",
+    tabs: [],
+    tab_name: "",
+    columns: [],
+    selectedColumn: "",
+    filters: {}
+  };
+
+  let monitorInterval = null;
+  let manualTabMode = false;
+  let activeFilterPage = 0;
+  let filterPageGroups = [];
+  let pendingProfileSlot = null;
+  let currentProfileSlot = 0;
+  const MAX_FILTER_PROFILES = 3;
+  const FILTER_PROFILE_STORAGE_KEY = "planejamento_hc_filter_profiles_v3";
+  const FILTER_ACTIVE_SLOT_STORAGE_KEY = "planejamento_hc_filter_profiles_active_slot_v1";
+  const FILTERS_PER_VIEW = 3;
+  let mainStatusTimer = null;
+  const DAILY_CHANGES_STORAGE_KEY = "planejamento_hc_daily_changes_v1";
+
+  function showStatus(el, msg, type = "success") {
+    if (!el) return;
+    const extra = el.id === "mainStatus" ? " panel-toast" : "";
+    el.className = "status" + extra + " show " + type;
+    el.textContent = msg;
+
+    if (el.id === "mainStatus") {
+      if (mainStatusTimer) clearTimeout(mainStatusTimer);
+      mainStatusTimer = setTimeout(() => {
+        clearStatus(el);
+      }, 3000);
+    }
+  }
+
+  function clearStatus(el) {
+    if (!el) return;
+    const extra = el.id === "mainStatus" ? " panel-toast" : "";
+    el.className = "status" + extra;
+    el.textContent = "";
+  }
+
+  function setHCLoading(isLoading) {
+    if (!hcPanelLoading) return;
+    hcPanelLoading.classList.toggle("hidden", !isLoading);
+  }
+
+  function setModalLoading(modal, isLoading) {
+    if (!modal) return;
+    modal.classList.toggle("loading", isLoading);
+  }
+
+  function safeArray(v) {
+    return Array.isArray(v) ? v : [];
+  }
+
+  function escapeHtml(text) {
+    const div = document.createElement("div");
+    div.textContent = String(text ?? "");
+    return div.innerHTML;
+  }
+
+  function normalizeText(v) {
+    return String(v ?? "").trim();
+  }
+
+  function getEffectiveFilters(filters) {
+    const obj = filters && Object.keys(filters).length ? filters : DEFAULT_FILTERS;
+    return JSON.parse(JSON.stringify(obj));
+  }
+
+  function detectChangeType(change) {
+    const base = String(change?.tipo || change?.type || change?.categoria || "").toLowerCase();
+    const detail = `${change?.situacao_anterior || ""} ${change?.situacao_nova || ""} ${change?.descricao || ""}`.toLowerCase();
+
+    if (base.includes("deslig") || detail.includes("deslig") || detail.includes("demit")) return "desligamento";
+    if (base.includes("admiss") || detail.includes("admiss")) return "admissao";
+    if (base.includes("afast") || detail.includes("afast")) return "afastamento";
+    return "outro";
+  }
+
+  function getChangeLabel(type) {
+    return {
+      desligamento: "Desligamento",
+      admissao: "Admissão",
+      afastamento: "Afastamento",
+      outro: "Alteração"
+    }[type] || "Alteração";
+  }
+
+  function getChangeTitle(change) {
+    return change?.nome || change?.colaborador || change?.matricula || change?.id || "Alteração detectada";
+  }
+
+  function getChangeDescription(change) {
+    const parts = [];
+    if (change?.situacao_anterior || change?.situacao_nova) {
+      parts.push(`${change?.situacao_anterior || "--"} → ${change?.situacao_nova || "--"}`);
+    }
+    if (change?.descricao) parts.push(change.descricao);
+    if (change?.detalhe) parts.push(change.detalhe);
+    if (change?.matricula) parts.push(`Matrícula: ${change.matricula}`);
+    return parts.join(" • ") || "Mudança identificada no monitoramento da planilha.";
+  }
+
+  const changeDetailsModal = document.getElementById("changeDetailsModal");
+  const closeChangeDetailsModal = document.getElementById("closeChangeDetailsModal");
+  const changeDetailsTitle = document.getElementById("changeDetailsTitle");
+  const changeDetailsSummary = document.getElementById("changeDetailsSummary");
+  const changeDetailsList = document.getElementById("changeDetailsList");
+  let groupedChangesCache = {};
+
+  function openChangeGroupModal(typeKey) {
+    const items = groupedChangesCache[typeKey] || [];
+    const typeLabel = getChangeLabel(typeKey);
+
+    changeDetailsTitle.textContent = `Detalhes de ${typeLabel}`;
+    changeDetailsSummary.textContent = items.length === 1
+      ? `1 ${typeLabel.toLowerCase()} detectado(a) no dia.`
+      : `${items.length} ${typeLabel.toLowerCase()}(s) detectado(s) no dia.`;
+
+    if (!items.length) {
+      changeDetailsList.innerHTML = `<div class="changes-empty">Nenhuma alteração encontrada.</div>`;
+    } else {
+      changeDetailsList.innerHTML = items.map(item => `
+        <div class="change-subitem">
+          <div class="change-subitem-title">${escapeHtml(getChangeTitle(item))}</div>
+          <div class="change-subitem-desc">${escapeHtml(getChangeDescription(item))}</div>
+        </div>
+      `).join("");
+    }
+
+    changeDetailsModal.classList.add("show");
+  }
+
+  function closeChangeDetailsModalFn() {
+    changeDetailsModal.classList.remove("show");
+  }
+
+  window.openChangeGroupModal = openChangeGroupModal;
+
+  function renderChangesList(alteracoes = []) {
+    const items = Array.isArray(alteracoes) ? alteracoes : [];
+
+    if (!items.length) {
+      changesList.innerHTML = `<div class="changes-empty">Nenhuma alteração detectada até o momento.</div>`;
+      changesPanelSub.textContent = "Sem novidades no momento.";
+      return;
+    }
+
+    const groups = {};
+    items.forEach(change => {
+      const type = detectChangeType(change);
+      if (!groups[type]) groups[type] = [];
+      groups[type].push(change);
+    });
+
+    groupedChangesCache = groups;
+
+    const order = ["desligamento", "afastamento", "admissao", "outro"];
+    const orderedEntries = order
+      .filter(type => groups[type]?.length)
+      .map(type => [type, groups[type]]);
+
+    changesPanelSub.textContent = `${items.length} alteração(ões) encontrada(s) no monitoramento.`;
+
+    changesList.innerHTML = orderedEntries.map(([type, groupItems]) => {
+      const total = groupItems.length;
+      const firstItem = groupItems[0];
+      const typeLabel = getChangeLabel(type);
+      const resumo = total === 1
+        ? `1 ${typeLabel.toLowerCase()} detectado(a) no dia.`
+        : `${total} ${typeLabel.toLowerCase()}(s) detectado(s) no dia.`;
+
+      return `
+        <div class="change-group-card">
+          <div class="change-group-head">
+            <div class="change-group-left">
+              <div class="change-badge ${type}">${escapeHtml(typeLabel)}</div>
+              <div class="change-group-meta">
+                <div class="change-group-title">${escapeHtml(resumo)}</div>
+                <div class="change-group-desc">${escapeHtml(getChangeDescription(firstItem))}</div>
+              </div>
+            </div>
+            <button
+              class="change-group-btn"
+              type="button"
+              onclick="openChangeGroupModal('${type}')"
+            >
+              Ver detalhes
+            </button>
+          </div>
+        </div>
+      `;
+    }).join("");
+  }
+
+  function toggleManualTabMode(forceValue = null) {
+    manualTabMode = forceValue !== null ? forceValue : !manualTabMode;
+    manualTabField.classList.toggle("hidden", !manualTabMode);
+    toggleManualTab.textContent = manualTabMode
+      ? "Usar lista de abas encontradas"
+      : "Digitar a aba manualmente";
+  }
+
+  function getChosenTabName() {
+    return manualTabMode
+      ? normalizeText(tabInputManual.value)
+      : normalizeText(tabSelect.value);
+  }
+
+  function populateTabs(tabs, selected = "") {
+    tabSelect.innerHTML = `<option value="">Selecione uma aba</option>`;
+    safeArray(tabs).forEach(tab => {
+      const opt = document.createElement("option");
+      opt.value = tab;
+      opt.textContent = tab;
+      if (tab === selected) opt.selected = true;
+      tabSelect.appendChild(opt);
+    });
+  }
+
+  function getFilterProfiles() {
+    try {
+      const raw = localStorage.getItem(FILTER_PROFILE_STORAGE_KEY);
+      const parsed = raw ? JSON.parse(raw) : [];
+      return Array.isArray(parsed) ? parsed.slice(0, MAX_FILTER_PROFILES) : [];
+    } catch (err) {
+      return [];
+    }
+  }
+
+  function saveFilterProfiles(profiles) {
+    localStorage.setItem(FILTER_PROFILE_STORAGE_KEY, JSON.stringify((profiles || []).slice(0, MAX_FILTER_PROFILES)));
+  }
+
+
+  function getStoredActiveProfileSlot() {
+    try {
+      const raw = localStorage.getItem(FILTER_ACTIVE_SLOT_STORAGE_KEY);
+      const idx = Number(raw);
+      return Number.isInteger(idx) && idx >= 0 && idx < MAX_FILTER_PROFILES ? idx : 0;
+    } catch (err) {
+      return 0;
+    }
+  }
+
+  function setStoredActiveProfileSlot(slotIndex) {
+    currentProfileSlot = Math.max(0, Math.min(MAX_FILTER_PROFILES - 1, Number(slotIndex) || 0));
+    localStorage.setItem(FILTER_ACTIVE_SLOT_STORAGE_KEY, String(currentProfileSlot));
+  }
+
+  function getNextUsableProfileSlot(preferred = null) {
+    const profiles = getFilterProfiles();
+    if (preferred !== null && preferred >= 0 && preferred < MAX_FILTER_PROFILES) {
+      if (profiles[preferred]) return preferred;
+    }
+    const firstExisting = profiles.findIndex(Boolean);
+    if (firstExisting >= 0) return firstExisting;
+    const firstEmpty = profiles.findIndex(item => !item);
+    return firstEmpty >= 0 ? firstEmpty : 0;
+  }
+
+  function getReadableFilterValue(col, vals) {
+    return safeArray(vals).join(", ");
+  }
+
+  function calculateFilterPages() {
+    const items = Array.from(activeFiltersTrack.children).filter(item => !item.classList.contains("compact-filter-empty"));
+    if (!items.length) {
+      filterPageGroups = [];
+      activeFilterPage = 0;
+      activeFiltersTrack.style.setProperty("--filter-cols", "1");
+      updateFilterCarousel();
+      return;
+    }
+
+    const total = items.length;
+    if (total <= FILTERS_PER_VIEW) {
+      filterPageGroups = [items.map((_, idx) => idx)];
+      activeFilterPage = 0;
+      activeFiltersTrack.style.setProperty("--filter-cols", String(total));
+      updateFilterCarousel();
+      return;
+    }
+
+    filterPageGroups = [];
+    for (let start = 0; start <= total - FILTERS_PER_VIEW; start++) {
+      filterPageGroups.push([start, start + 1, start + 2]);
+    }
+
+    if (activeFilterPage > filterPageGroups.length - 1) {
+      activeFilterPage = filterPageGroups.length - 1;
+    }
+    if (activeFilterPage < 0) activeFilterPage = 0;
+
+    activeFiltersTrack.style.setProperty("--filter-cols", String(FILTERS_PER_VIEW));
+    updateFilterCarousel();
+  }
+
+  function updateFilterCarousel() {
+    const allItems = Array.from(activeFiltersTrack.children);
+    const filterItems = allItems.filter(item => !item.classList.contains("compact-filter-empty"));
+    const group = filterPageGroups[activeFilterPage] || [];
+    const hasMultiplePages = filterPageGroups.length > 1;
+
+    allItems.forEach(item => item.classList.add("hidden"));
+
+    if (!filterItems.length) {
+      const empty = allItems[0];
+      if (empty) empty.classList.remove("hidden");
+      filtersPrev.classList.add("hidden");
+      filtersNext.classList.add("hidden");
+      activeFiltersTrack.style.setProperty("--filter-cols", "1");
+      return;
+    }
+
+    filterItems.forEach((item, idx) => {
+      item.classList.toggle("hidden", !group.includes(idx));
+    });
+
+    const visibleCount = hasMultiplePages ? FILTERS_PER_VIEW : filterItems.length;
+    activeFiltersTrack.style.setProperty("--filter-cols", String(Math.max(1, visibleCount)));
+
+    filtersPrev.classList.toggle("hidden", !hasMultiplePages || activeFilterPage === 0);
+    filtersNext.classList.toggle("hidden", !hasMultiplePages || activeFilterPage >= filterPageGroups.length - 1);
+  }
+
+  function renderProfileSlots() {
+    const profiles = getFilterProfiles();
+    filterProfilesStrip.innerHTML = "";
+
+    for (let i = 0; i < MAX_FILTER_PROFILES; i++) {
+      const profile = profiles[i];
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "profile-slot";
+
+      if (profile) {
+        if (i === currentProfileSlot) btn.classList.add("active");
+        btn.innerHTML = `
+          <span>🗂</span>
+          <span class="profile-slot-text">
+            <span>${escapeHtml(profile.name || `Perfil ${i + 1}`)}</span>
+          </span>
+        `;
+        btn.addEventListener("click", async () => {
+          setStoredActiveProfileSlot(i);
+          pendingProfileSlot = i;
+          filterProfileName.value = profile.name || `Perfil ${i + 1}`;
+          wizardState.filters = JSON.parse(JSON.stringify(profile.filters || {}));
+          renderProfileSlots();
+          renderSelectedFilters();
+          renderActiveFilters(wizardState.filters);
+          await salvarSomenteFiltros(true, true);
+        });
+      } else {
+        btn.classList.add("empty");
+        btn.innerHTML = `<span style="font-size:18px;">＋</span><span>Novo perfil</span>`;
+        btn.addEventListener("click", async () => {
+          setStoredActiveProfileSlot(i);
+          pendingProfileSlot = i;
+          filterProfileName.value = `Perfil ${i + 1}`;
+          wizardState.filters = {};
+          await openFilterModal();
+        });
+      }
+
+      filterProfilesStrip.appendChild(btn);
+    }
+  }
+
+  function renderActiveFilters(filters = {}) {
+    const effective = getEffectiveFilters(filters);
+    const entries = Object.entries(effective).filter(([_, vals]) => Array.isArray(vals) && vals.length > 0);
+
+    if (activeFiltersTitle) {
+      activeFiltersTitle.textContent = `${entries.length} ${entries.length === 1 ? "filtro ativo" : "filtros ativos"}`;
+    }
+
+    if (!entries.length) {
+      activeFiltersTrack.innerHTML = `<div class="compact-filter-empty">Nenhum filtro ativo.</div>`;
+      activeFilterPage = 0;
+      filterPageGroups = [];
+      calculateFilterPages();
+      return;
+    }
+
+    activeFiltersTrack.innerHTML = entries.map(([col, vals]) => `
+      <div class="compact-filter-pill" title="${escapeHtml(col + ': ' + vals.join(', '))}">
+        <span>${escapeHtml(getReadableFilterValue(col, vals))}</span>
+      </div>
+    `).join("");
+
+    activeFilterPage = 0;
+    filterPageGroups = [];
+    requestAnimationFrame(calculateFilterPages);
+  }
+
+  function renderSelectedFilters() {
+    const entries = Object.entries(wizardState.filters || {}).filter(([_, vals]) => Array.isArray(vals) && vals.length > 0);
+
+    if (!entries.length) {
+      selectedFiltersSummary.innerHTML = `<div class="empty-box">Nenhum filtro montado ainda.</div>`;
+      return;
+    }
+
+    selectedFiltersSummary.innerHTML = entries.flatMap(([col, vals]) =>
+      vals.map(val => `
+        <div class="filter-pill">
+          <span><strong>${escapeHtml(col)}:</strong> ${escapeHtml(val)}</span>
+          <button type="button" onclick="removeFilterValue('${encodeURIComponent(col)}', '${encodeURIComponent(val)}')">×</button>
+        </div>
+      `)
+    ).join("");
+  }
+
+  function removeFilterValue(colEncoded, valEncoded) {
+    const col = decodeURIComponent(colEncoded);
+    const val = decodeURIComponent(valEncoded);
+
+    if (!wizardState.filters[col]) return;
+
+    wizardState.filters[col] = wizardState.filters[col].filter(item => item !== val);
+    if (!wizardState.filters[col].length) delete wizardState.filters[col];
+
+    renderSelectedFilters();
+    renderColumnValuesCurrentState();
+  }
+
+  window.removeFilterValue = removeFilterValue;
+
+  function getTodayKey() {
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, "0");
+    const d = String(now.getDate()).padStart(2, "0");
+    return `${y}-${m}-${d}`;
+  }
+
+  function getStoredDailyChanges() {
+    try {
+      const raw = localStorage.getItem(DAILY_CHANGES_STORAGE_KEY);
+      const parsed = raw ? JSON.parse(raw) : null;
+      if (!parsed || parsed.day !== getTodayKey() || !Array.isArray(parsed.items)) {
+        return [];
+      }
+      return parsed.items;
+    } catch (err) {
+      return [];
+    }
+  }
+
+  function saveStoredDailyChanges(items) {
+    localStorage.setItem(DAILY_CHANGES_STORAGE_KEY, JSON.stringify({
+      day: getTodayKey(),
+      items: Array.isArray(items) ? items : []
+    }));
+  }
+
+  function makeChangeSignature(change) {
+    return [
+      String(change?.tipo || change?.type || change?.categoria || "").toLowerCase(),
+      String(change?.matricula || "").trim(),
+      String(change?.situacao_anterior || "").trim(),
+      String(change?.situacao_nova || "").trim(),
+      String(change?.descricao || "").trim()
+    ].join("|");
+  }
+
+  function mergeDailyChanges(newItems = []) {
+    const current = getStoredDailyChanges();
+    const map = new Map(current.map(item => [makeChangeSignature(item), item]));
+    (Array.isArray(newItems) ? newItems : []).forEach(item => {
+      map.set(makeChangeSignature(item), item);
+    });
+    const merged = Array.from(map.values());
+    saveStoredDailyChanges(merged);
+    return merged;
+  }
+
+  function computeProjectedTotal(baseTotal, alteracoes = []) {
+    let total = Number(baseTotal);
+    if (!Number.isFinite(total)) return null;
+
+    (Array.isArray(alteracoes) ? alteracoes : []).forEach(change => {
+      const type = detectChangeType(change);
+      const from = String(change?.situacao_anterior || "").trim().toUpperCase();
+      const to = String(change?.situacao_nova || "").trim().toUpperCase();
+
+      if (type === "admissao") {
+        total += 1;
+        return;
+      }
+
+      if (type === "desligamento") {
+        if (from === "TRABALHANDO" || !from) total -= 1;
+        return;
+      }
+
+      if (type === "afastamento") {
+        if (from === "TRABALHANDO" && to.includes("AFAST")) {
+          total -= 1;
+          return;
+        }
+        if (from.includes("AFAST") && to === "TRABALHANDO") {
+          total += 1;
+          return;
+        }
+      }
+    });
+
+    return total;
+  }
+
+  function renderProjectedTotal(baseTotal, alteracoes = []) {
+    if (!hcProjectedTotal) return;
+    const projected = computeProjectedTotal(baseTotal, alteracoes);
+    const base = Number(baseTotal);
+
+    if (!Number.isFinite(projected) || !Number.isFinite(base) || projected === base) {
+      hcProjectedTotal.textContent = "";
+      hcProjectedTotal.classList.remove("show");
+      return;
+    }
+
+    hcProjectedTotal.textContent = `→ ${projected}`;
+    hcProjectedTotal.classList.add("show");
+  }
+
+  async function excluirPerfilAtual() {
+    try {
+      const profiles = getFilterProfiles();
+      profiles[currentProfileSlot] = null;
+      saveFilterProfiles(profiles);
+
+      const nextSlot = getNextUsableProfileSlot(currentProfileSlot);
+      setStoredActiveProfileSlot(nextSlot);
+      pendingProfileSlot = nextSlot;
+
+      const nextProfile = getFilterProfiles()[nextSlot];
+      if (nextProfile) {
+        filterProfileName.value = nextProfile.name || `Perfil ${nextSlot + 1}`;
+        wizardState.filters = JSON.parse(JSON.stringify(nextProfile.filters || {}));
+        await salvarSomenteFiltros(true, true);
+      } else {
+        filterProfileName.value = `Perfil ${nextSlot + 1}`;
+        wizardState.filters = {};
+        renderSelectedFilters();
+        renderActiveFilters(wizardState.filters);
+        renderProfileSlots();
+        closeFilterModalFn();
+        showStatus(mainStatus, "Perfil excluído com sucesso.", "success");
+      }
+    } catch (err) {
+      showStatus(filterStatus, err.message || "Não foi possível excluir o perfil.", "error");
+    }
+  }
+
+  function fillData(dados) {
+
+    const totalFiltrado = dados.total_filtrado ?? "--";
+    hcTotal.textContent = totalFiltrado;
+    hcSub.textContent = `Planilha: ${dados.spreadsheet_name || "--"} • Aba: ${dados.tab_name || "--"}`;
+    renderProjectedTotal(totalFiltrado, getStoredDailyChanges());
+    renderActiveFilters(dados.filters || {});
+    renderProfileSlots();
+  }
+
+  async function carregarConfig(preserveLocalProfile = false) {
+    const resp = await fetch("/planejamento/hc-config");
+    const data = await resp.json();
+
+    if (!data.ok) {
+      throw new Error(data.msg || "Erro ao carregar configuração.");
+    }
+
+    const cfg = data.config || {};
+    wizardState.sheet_id = cfg.sheet_id || "";
+    wizardState.tab_name = cfg.tab_name || "";
+    wizardState.filters = preserveLocalProfile ? JSON.parse(JSON.stringify(wizardState.filters || {})) : getEffectiveFilters(cfg.filters || {});
+    wizardState.tabs = [];
+    wizardState.columns = [];
+    wizardState.selectedColumn = "";
+
+    sheetInput.value = wizardState.sheet_id || "";
+    tabInputManual.value = wizardState.tab_name || "";
+  }
+
+  async function carregarTotal() {
+    setHCLoading(true);
+    clearStatus(mainStatus);
+
+    try {
+      const resp = await fetch("/planejamento/hc-total");
+      const data = await resp.json();
+
+      if (!data.ok) {
+        throw new Error(data.detail || data.msg || "Erro ao buscar total.");
+      }
+
+      fillData(data.dados || {});
+      showStatus(mainStatus, "Painel atualizado com sucesso.", "success");
+    } catch (err) {
+      hcTotal.textContent = "--";
+      hcSub.textContent = "Não foi possível carregar os dados.";
+      showStatus(mainStatus, err.message, "error");
+    } finally {
+      setHCLoading(false);
+    }
+  }
+
+  async function buscarAbasPlanilha() {
+    setModalLoading(configModal, true);
+    clearStatus(configStatus);
+
+    try {
+      const rawSheet = normalizeText(sheetInput.value);
+      if (!rawSheet) {
+        throw new Error("Informe o link ou ID da planilha.");
+      }
+
+      const resp = await fetch("/planejamento/hc-tabs", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sheet_id: rawSheet })
+      });
+
+      const data = await resp.json();
+
+      if (!data.ok) {
+        throw new Error(data.detail || data.msg || "Não foi possível buscar as abas.");
+      }
+
+      wizardState.sheet_id = data.sheet_id || rawSheet;
+      wizardState.spreadsheet_name = data.spreadsheet_name || "";
+      wizardState.tabs = safeArray(data.tabs);
+
+      populateTabs(wizardState.tabs, wizardState.tab_name);
+      sheetPreviewText.textContent = `Planilha encontrada: ${wizardState.spreadsheet_name || wizardState.sheet_id}`;
+
+      if (wizardState.tab_name && wizardState.tabs.includes(wizardState.tab_name)) {
+        tabSelect.value = wizardState.tab_name;
+      }
+
+      showStatus(
+        configStatus,
+        wizardState.tabs.length
+          ? "Planilha encontrada. Agora escolha a aba."
+          : "Planilha encontrada, mas nenhuma aba foi listada. Digite o nome manualmente.",
+        wizardState.tabs.length ? "success" : "warning"
+      );
+
+      toggleManualTabMode(!wizardState.tabs.length);
+    } catch (err) {
+      wizardState.sheet_id = normalizeText(sheetInput.value);
+      wizardState.spreadsheet_name = "";
+      wizardState.tabs = [];
+
+      populateTabs([]);
+      sheetPreviewText.textContent = "Não foi possível listar as abas automaticamente. Você ainda pode digitar a aba manualmente.";
+      toggleManualTabMode(true);
+      showStatus(configStatus, err.message, "warning");
+    } finally {
+      setModalLoading(configModal, false);
+    }
+  }
+
+  async function salvarConfiguracaoPainel() {
+    setModalLoading(configModal, true);
+    clearStatus(configStatus);
+
+    try {
+      const sheetId = wizardState.sheet_id || normalizeText(sheetInput.value);
+      const tabName = getChosenTabName();
+
+      if (!sheetId) {
+        throw new Error("Informe a planilha.");
+      }
+
+      if (!tabName) {
+        throw new Error("Informe ou selecione a aba.");
+      }
+
+      wizardState.sheet_id = sheetId;
+      wizardState.tab_name = tabName;
+
+      const slotToSave = pendingProfileSlot !== null ? pendingProfileSlot : currentProfileSlot;
+      const profileName = normalizeText(filterProfileName.value) || `Perfil ${slotToSave + 1}`;
+      const profiles = getFilterProfiles();
+      profiles[slotToSave] = {
+        name: profileName,
+        filters: JSON.parse(JSON.stringify(wizardState.filters || {}))
+      };
+      saveFilterProfiles(profiles);
+      setStoredActiveProfileSlot(slotToSave);
+      currentProfileSlot = slotToSave;
+      pendingProfileSlot = slotToSave;
+
+      const resp = await fetch("/planejamento/hc-config/save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sheet_id: wizardState.sheet_id,
+          tab_name: wizardState.tab_name,
+          filters: wizardState.filters
+        })
+      });
+
+      const data = await resp.json();
+
+      if (!data.ok) {
+        throw new Error(data.detail || data.msg || "Falha ao salvar configuração do painel.");
+      }
+
+      showStatus(configStatus, "Painel salvo com sucesso.", "success");
+      closeConfigModalFn();
+
+      await carregarConfig();
+      await carregarTotal();
+      await verificarAlteracoesHC(false);
+    } catch (err) {
+      showStatus(configStatus, err.message, "error");
+    } finally {
+      setModalLoading(configModal, false);
+    }
+  }
+
+  function renderColumns() {
+    columnsBox.innerHTML = "";
+    columnValuesBox.innerHTML = "";
+    selectedColumnLabel.textContent = "Nenhuma coluna selecionada.";
+    valuesEmpty.textContent = "Selecione uma coluna para ver os valores.";
+    valuesEmpty.classList.remove("hidden");
+
+    if (!wizardState.columns.length) {
+      columnsEmpty.classList.remove("hidden");
+      return;
+    }
+
+    columnsEmpty.classList.add("hidden");
+
+    wizardState.columns.forEach(col => {
+      const chip = document.createElement("button");
+      chip.type = "button";
+      chip.className = "chip" + (wizardState.selectedColumn === col ? " active" : "");
+      chip.textContent = col;
+
+      chip.addEventListener("click", () => {
+        wizardState.selectedColumn = col;
+        renderColumns();
+        carregarValoresColuna(col);
+      });
+
+      columnsBox.appendChild(chip);
+    });
+  }
+
+  async function carregarValoresColuna(coluna) {
+    setModalLoading(filterModal, true);
+    clearStatus(filterStatus);
+
+    try {
+      selectedColumnLabel.textContent = `Coluna selecionada: ${coluna}`;
+      columnValuesBox.innerHTML = "";
+      valuesEmpty.classList.remove("hidden");
+
+      const resp = await fetch("/planejamento/hc-column-values", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sheet_id: wizardState.sheet_id,
+          tab_name: wizardState.tab_name,
+          column_name: coluna
+        })
+      });
+
+      const data = await resp.json();
+
+      if (!data.ok) {
+        throw new Error(data.detail || data.msg || "Erro ao carregar valores.");
+      }
+
+      const values = safeArray(data.values);
+
+      if (!values.length) {
+        valuesEmpty.textContent = "Nenhum valor encontrado para esta coluna.";
+        valuesEmpty.classList.remove("hidden");
+        return;
+      }
+
+      valuesEmpty.classList.add("hidden");
+      columnValuesBox.innerHTML = "";
+
+      values.forEach(val => {
+        const active = Array.isArray(wizardState.filters[coluna]) && wizardState.filters[coluna].includes(val);
+
+        const chip = document.createElement("button");
+        chip.type = "button";
+        chip.className = "chip" + (active ? " active" : "");
+        chip.textContent = val;
+
+        chip.addEventListener("click", () => toggleFilterValue(coluna, val));
+        columnValuesBox.appendChild(chip);
+      });
+
+      renderColumnValuesCurrentState();
+    } catch (err) {
+      valuesEmpty.textContent = err.message;
+      valuesEmpty.classList.remove("hidden");
+    } finally {
+      setModalLoading(filterModal, false);
+    }
+  }
+
+  function renderColumnValuesCurrentState() {
+    if (!wizardState.selectedColumn) return;
+
+    const currentColumn = wizardState.selectedColumn;
+    const buttons = columnValuesBox.querySelectorAll(".chip");
+
+    buttons.forEach(btn => {
+      const val = btn.textContent;
+      const active = Array.isArray(wizardState.filters[currentColumn]) && wizardState.filters[currentColumn].includes(val);
+      btn.classList.toggle("active", active);
+    });
+
+    renderSelectedFilters();
+  }
+
+  function toggleFilterValue(coluna, valor) {
+    if (!wizardState.filters[coluna]) {
+      wizardState.filters[coluna] = [];
+    }
+
+    const idx = wizardState.filters[coluna].indexOf(valor);
+
+    if (idx >= 0) {
+      wizardState.filters[coluna].splice(idx, 1);
+    } else {
+      wizardState.filters[coluna].push(valor);
+    }
+
+    if (!wizardState.filters[coluna].length) {
+      delete wizardState.filters[coluna];
+    }
+
+    renderColumnValuesCurrentState();
+    renderSelectedFilters();
+  }
+
+  function limparFiltros() {
+    wizardState.filters = {};
+    renderSelectedFilters();
+    renderColumnValuesCurrentState();
+  }
+
+  async function openFilterModal() {
+    clearStatus(filterStatus);
+    if (pendingProfileSlot === null) {
+      pendingProfileSlot = currentProfileSlot;
+    }
+    if (!normalizeText(filterProfileName.value)) {
+      filterProfileName.value = `Perfil ${pendingProfileSlot + 1}`;
+    }
+
+    if (!wizardState.sheet_id || !wizardState.tab_name) {
+      filterModal.classList.add("show");
+      showStatus(filterStatus, "Primeiro configure a planilha e a aba do painel.", "warning");
+      return;
+    }
+
+    filterModal.classList.add("show");
+
+    try {
+      setModalLoading(filterModal, true);
+
+      const colResp = await fetch("/planejamento/hc-columns", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sheet_id: wizardState.sheet_id,
+          tab_name: wizardState.tab_name
+        })
+      });
+
+      const colData = await colResp.json();
+
+      if (!colData.ok) {
+        throw new Error(colData.detail || colData.msg || "Falha ao carregar colunas.");
+      }
+
+      wizardState.columns = Array.isArray(colData.columns) ? colData.columns : [];
+      wizardState.selectedColumn = "";
+      if (pendingProfileSlot === null) {
+        pendingProfileSlot = currentProfileSlot;
+      }
+      if (!normalizeText(filterProfileName.value)) {
+        filterProfileName.value = `Perfil ${pendingProfileSlot + 1}`;
+      }
+      renderColumns();
+      renderSelectedFilters();
+    } catch (err) {
+      showStatus(filterStatus, err.message, "error");
+    } finally {
+      setModalLoading(filterModal, false);
+    }
+  }
+
+  async function salvarSomenteFiltros(skipClose = false, preservePage = false) {
+    setModalLoading(filterModal, true);
+    clearStatus(filterStatus);
+
+    try {
+      if (!wizardState.sheet_id) {
+        throw new Error("Planilha não definida.");
+      }
+
+      if (!wizardState.tab_name) {
+        throw new Error("Aba não definida.");
+      }
+
+      const slotToSave = pendingProfileSlot !== null ? pendingProfileSlot : currentProfileSlot;
+      const profileName = normalizeText(filterProfileName.value) || `Perfil ${slotToSave + 1}`;
+      const profiles = getFilterProfiles();
+      profiles[slotToSave] = {
+        name: profileName,
+        filters: JSON.parse(JSON.stringify(wizardState.filters || {}))
+      };
+      saveFilterProfiles(profiles);
+      setStoredActiveProfileSlot(slotToSave);
+      currentProfileSlot = slotToSave;
+      pendingProfileSlot = slotToSave;
+
+      const resp = await fetch("/planejamento/hc-config/save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sheet_id: wizardState.sheet_id,
+          tab_name: wizardState.tab_name,
+          filters: wizardState.filters
+        })
+      });
+
+      const data = await resp.json();
+
+      if (!data.ok) {
+        throw new Error(data.detail || data.msg || "Falha ao salvar filtros.");
+      }
+
+      renderActiveFilters(wizardState.filters);
+      renderProfileSlots();
+      if (!skipClose) {
+        closeFilterModalFn();
+      }
+
+      await carregarConfig(preservePage);
+      await carregarTotal();
+      await verificarAlteracoesHC(false);
+    } catch (err) {
+      showStatus(filterStatus, err.message, "error");
+    } finally {
+      setModalLoading(filterModal, false);
+    }
+  }
+
+  async function verificarAlteracoesHC(showLoader = false) {
+    try {
+      if (showLoader) {
+        setHCLoading(true);
+      }
+
+      const resp = await fetch("/planejamento/hc-monitor", {
+        method: "GET",
+        headers: { "Accept": "application/json" }
+      });
+
+      const data = await resp.json();
+
+      if (!data.ok) {
+        throw new Error(data.detail || data.msg || "Erro no monitoramento.");
+      }
+
+      const alteracoesNovas = data.monitor?.ultimas_alteracoes || [];
+      const alteracoesDoDia = mergeDailyChanges(alteracoesNovas);
+      renderChangesList(alteracoesDoDia);
+      renderProjectedTotal(hcTotal.textContent, alteracoesDoDia);
+
+      if (alteracoesNovas.length > 0) {
+        showStatus(mainStatus, `${alteracoesNovas.length} alteração(ões) detectada(s) no monitoramento.`, "warning");
+      }
+    } catch (err) {
+      console.error("Erro ao verificar alterações HC:", err);
+      const alteracoesDoDia = getStoredDailyChanges();
+      renderChangesList(alteracoesDoDia);
+      renderProjectedTotal(hcTotal.textContent, alteracoesDoDia);
+    } finally {
+      if (showLoader) {
+        setHCLoading(false);
+      }
+    }
+  }
+
+  async function iniciarMonitoramentoHC() {
+    await verificarAlteracoesHC(false);
+
+    if (monitorInterval) {
+      clearInterval(monitorInterval);
+    }
+
+    monitorInterval = setInterval(async () => {
+      await verificarAlteracoesHC(false);
+    }, 10000);
+  }
+
+  function openPanelConfigModal() {
+    clearStatus(configStatus);
+
+    sheetInput.value = wizardState.sheet_id || "";
+    tabInputManual.value = wizardState.tab_name || "";
+    populateTabs(wizardState.tabs || [], wizardState.tab_name || "");
+
+    sheetPreviewText.textContent = wizardState.spreadsheet_name
+      ? `Planilha encontrada: ${wizardState.spreadsheet_name}`
+      : "Nenhuma planilha validada ainda.";
+
+    configModal.classList.add("show");
+  }
+
+  function closeConfigModalFn() {
+    configModal.classList.remove("show");
+  }
+
+  function closeFilterModalFn() {
+    filterModal.classList.remove("show");
+  }
+
+  toggleSidebar.addEventListener("click", () => {
+    sidebar.classList.toggle("open");
+  });
+
+  if (openConfig) openConfig.addEventListener("click", openPanelConfigModal);
+  if (reloadIconBtn) reloadIconBtn.addEventListener("click", async () => {
+    await carregarTotal();
+    await verificarAlteracoesHC(false);
+  });
+  if (openConfigModule) openConfigModule.addEventListener("click", openPanelConfigModal);
+  if (openFilterEditor) openFilterEditor.addEventListener("click", openFilterModal);
+  if (openFilterEditorTop) openFilterEditorTop.addEventListener("click", openFilterModal);
+
+  closeConfig.addEventListener("click", closeConfigModalFn);
+  closeFilterModal.addEventListener("click", closeFilterModalFn);
+
+  btnCancelarConfig.addEventListener("click", closeConfigModalFn);
+  btnCancelarFilter.addEventListener("click", closeFilterModalFn);
+
+  configModal.addEventListener("click", (e) => {
+    if (e.target === configModal) {
+      closeConfigModalFn();
+    }
+  });
+
+  filterModal.addEventListener("click", (e) => {
+    if (e.target === filterModal) {
+      closeFilterModalFn();
+    }
+  });
+
+  if (closeChangeDetailsModal) closeChangeDetailsModal.addEventListener("click", closeChangeDetailsModalFn);
+  if (changeDetailsModal) {
+    changeDetailsModal.addEventListener("click", (e) => {
+      if (e.target === changeDetailsModal) {
+        closeChangeDetailsModalFn();
+      }
+    });
+  }
+
+  toggleManualTab.addEventListener("click", () => toggleManualTabMode());
+
+  btnBuscarAbas.addEventListener("click", buscarAbasPlanilha);
+  btnSavePanelConfig.addEventListener("click", salvarConfiguracaoPainel);
+  btnSaveFiltersOnly.addEventListener("click", () => salvarSomenteFiltros(false, true));
+  btnClearFilters.addEventListener("click", excluirPerfilAtual);
+  filtersPrev.addEventListener("click", () => {
+    if (activeFilterPage > 0) {
+      activeFilterPage -= 1;
+      updateFilterCarousel();
+    }
+  });
+  filtersNext.addEventListener("click", () => {
+    if (activeFilterPage < filterPageGroups.length - 1) {
+      activeFilterPage += 1;
+      updateFilterCarousel();
+    }
+  });
+
+  window.addEventListener("resize", () => {
+    requestAnimationFrame(calculateFilterPages);
+  });
+
+  window.addEventListener("DOMContentLoaded", async () => {
+    try {
+      const profiles = getFilterProfiles();
+      setStoredActiveProfileSlot(getNextUsableProfileSlot(getStoredActiveProfileSlot()));
+      pendingProfileSlot = currentProfileSlot;
+
+      const activeProfile = profiles[currentProfileSlot];
+      if (activeProfile) {
+        filterProfileName.value = activeProfile.name || `Perfil ${currentProfileSlot + 1}`;
+        wizardState.filters = JSON.parse(JSON.stringify(activeProfile.filters || {}));
+      } else {
+        filterProfileName.value = `Perfil ${currentProfileSlot + 1}`;
+      }
+
+      await carregarConfig(!!activeProfile);
+      renderProfileSlots();
+      renderActiveFilters(wizardState.filters);
+      renderSelectedFilters();
+      renderChangesList(getStoredDailyChanges());
+      await carregarTotal();
+      await iniciarMonitoramentoHC();
+    } catch (err) {
+      showStatus(mainStatus, err.message, "error");
+    }
+  });
+</script>
+
+</body>
+</html>
