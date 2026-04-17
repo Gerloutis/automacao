@@ -21,6 +21,10 @@
       --soft:#f8fafc;
       --sidebar-w: 88px;
       --sidebar-open: 240px;
+      --shadow: 0 10px 30px rgba(0,0,0,.05);
+      --radius-xl: 22px;
+      --radius-lg: 16px;
+      --radius-md: 12px;
     }
 
     * { box-sizing: border-box; }
@@ -44,11 +48,10 @@
       transition: width .25s ease;
       overflow: hidden;
       position: relative;
+      flex-shrink: 0;
     }
 
-    .sidebar.open {
-      width: var(--sidebar-open);
-    }
+    .sidebar.open { width: var(--sidebar-open); }
 
     .sidebar-header {
       display: flex;
@@ -77,13 +80,10 @@
       transition: opacity .2s ease;
     }
 
-    .sidebar.open .sidebar-title {
-      opacity: 1;
-    }
+    .sidebar.open .sidebar-title,
+    .sidebar.open .menu-label { opacity: 1; }
 
-    .menu {
-      padding: 14px 10px;
-    }
+    .menu { padding: 14px 10px; }
 
     .menu-item {
       display: flex;
@@ -115,10 +115,6 @@
       white-space: nowrap;
       opacity: 0;
       transition: opacity .2s ease;
-    }
-
-    .sidebar.open .menu-label {
-      opacity: 1;
     }
 
     .main {
@@ -157,322 +153,515 @@
       border-radius: 12px;
       cursor: pointer;
       font-weight: 700;
+      box-shadow: var(--shadow);
     }
 
     .content {
-      padding: 24px;
+      padding: 18px;
     }
 
-    .grid {
+    .workspace {
+      background: #f8fafc;
+      border: 1px solid #eceff3;
+      border-radius: 26px;
+      min-height: calc(100vh - 130px);
+      padding: 16px;
+    }
+
+    .dashboard-grid {
       display: grid;
-      grid-template-columns: 1.1fr .9fr;
-      gap: 20px;
+      grid-template-columns: repeat(auto-fit, minmax(520px, 520px));
+      gap: 18px;
+      align-content: start;
     }
 
-    .grid-bottom {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 20px;
-      margin-top: 20px;
-    }
-
-    .card {
+    .module-card {
       background: var(--card);
-      border-radius: 20px;
-      padding: 24px;
-      box-shadow: 0 10px 30px rgba(0,0,0,.06);
-      border: 1px solid #eef2f7;
+      border: 1px solid #edf1f5;
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow);
+      overflow: hidden;
     }
 
-    .card h2 {
-      margin: 0 0 18px;
-      font-size: 20px;
+    .module-card.placeholder {
+      min-height: 280px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #94a3b8;
+      font-size: 14px;
+      border-style: dashed;
+      background: #fcfdff;
     }
 
-    .hc-box {
+    .module-header {
+      display: grid;
+      grid-template-columns: 52px 1fr 52px;
+      align-items: start;
+      gap: 14px;
+      padding: 18px 18px 10px;
+    }
+
+    .module-title {
+      text-align: center;
       display: flex;
       flex-direction: column;
       align-items: center;
+    }
+
+    .module-title h2 {
+      margin: 0;
+      font-size: 26px;
+      line-height: 1.1;
+    }
+
+    .module-title p {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+      max-width: 420px;
+    }
+
+    .module-icon-btn {
+      border: 0;
+      background: #0f172a;
+      color: white;
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      cursor: pointer;
+      flex-shrink: 0;
+      box-shadow: 0 8px 18px rgba(15,23,42,.14);
+      display: inline-flex;
+      align-items: center;
       justify-content: center;
-      min-height: 260px;
+      font-size: 18px;
+    }
+
+    .module-icon-btn.secondary {
+      background: #e0f2fe;
+      color: #0369a1;
+      box-shadow: 0 8px 18px rgba(14,165,233,.18);
+    }
+
+    .module-body {
+      padding: 6px 18px 18px;
+    }
+
+    .hc-center {
       text-align: center;
+      padding: 8px 0 16px;
     }
 
     .hc-label {
       color: var(--muted);
-      font-size: 16px;
-      margin-bottom: 12px;
+      font-size: 12px;
+      margin-bottom: 8px;
+    }
+
+    .hc-total-wrap{
+      display:flex;
+      align-items:flex-end;
+      justify-content:center;
+      gap:12px;
+      margin-bottom: 10px;
+      flex-wrap:wrap;
     }
 
     .hc-total {
-      font-size: 72px;
+      font-size: 84px;
       font-weight: 800;
       line-height: 1;
-      margin-bottom: 10px;
+      letter-spacing: -2px;
+      color: #0f172a;
+      margin-bottom: 0;
+    }
+
+    .hc-total-preview{
+      font-size: 34px;
+      line-height: 1;
+      font-weight: 700;
+      color: rgba(15, 23, 42, 0.35);
+      transform: translateY(-6px);
+      display:none;
+    }
+
+    .hc-total-preview.show{
+      display:inline-block;
     }
 
     .hc-sub {
       color: var(--muted);
-      font-size: 14px;
+      font-size: 12px;
       line-height: 1.5;
     }
 
-    .hc-total-wrap {
+    .changes-panel {
+      margin-top: 12px;
+      border: 1px solid #e5e7eb;
+      border-radius: 18px;
+      background: linear-gradient(180deg, #fcfdff, #f8fafc);
+      padding: 14px;
+    }
+
+    .changes-panel-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .changes-panel-head h4 {
+      margin: 0;
+      font-size: 15px;
+      color: #111827;
+    }
+
+    .changes-panel-sub {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .changes-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      min-height: 244px;
+      max-height: 244px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .changes-list::-webkit-scrollbar{
+      width:8px;
+    }
+
+    .changes-list::-webkit-scrollbar-thumb{
+      background:#cbd5e1;
+      border-radius:999px;
+    }
+
+    .change-card {
       display: flex;
       align-items: flex-start;
-      justify-content: center;
-      gap: 18px;
+      gap: 12px;
+      border-radius: 14px;
+      padding: 12px 14px;
+      border: 1px solid #e5e7eb;
+      background: #fff;
     }
 
-    .hc-delta-col {
-      min-width: 48px;
-      display: flex;
-      justify-content: center;
-    }
-
-    .hc-delta {
-      font-size: 24px;
-      font-weight: 800;
-      opacity: .45;
-      margin-top: 12px;
+    .change-badge {
+      min-width: 96px;
+      text-align: center;
+      border-radius: 999px;
+      padding: 8px 10px;
+      font-size: 12px;
+      font-weight: 700;
       line-height: 1;
     }
 
-    .hc-delta.negative {
-      color: var(--danger);
+    .change-badge.desligamento {
+      background: #fff1f2;
+      color: #be123c;
+      border: 1px solid #fecdd3;
     }
 
-    .hc-delta.positive {
-      color: var(--success);
+    .change-badge.admissao {
+      background: #ecfdf5;
+      color: #15803d;
+      border: 1px solid #bbf7d0;
     }
 
-    .hc-preview {
-      margin-top: 8px;
-      color: var(--muted);
-      font-size: 13px;
+    .change-badge.afastamento {
+      background: #fff7ed;
+      color: #c2410c;
+      border: 1px solid #fed7aa;
     }
 
-    .monitor-item {
-      align-items: flex-start;
+    .change-badge.outro {
+      background: #eff6ff;
+      color: #1d4ed8;
+      border: 1px solid #bfdbfe;
     }
 
-    .monitor-item-main {
+    .change-content {
       flex: 1;
       min-width: 0;
     }
 
-    .monitor-item-title {
+    .change-title {
+      font-size: 14px;
       font-weight: 700;
+      color: #0f172a;
       margin-bottom: 4px;
     }
 
-    .monitor-item-message {
-      font-size: 13px;
+    .change-desc {
+      font-size: 12px;
       color: var(--muted);
-      line-height: 1.5;
+      line-height: 1.45;
+      word-break: break-word;
     }
 
-    .monitor-item-meta {
-      margin-top: 8px;
+    .changes-empty {
+      border: 1px dashed #cbd5e1;
+      border-radius: 14px;
+      padding: 16px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+      background: #fff;
+    }
+
+
+    .change-group-card {
+      border: 1px solid #e5e7eb;
+      background: #fff;
+      border-radius: 16px;
+      padding: 14px;
+    }
+
+    .change-group-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .change-group-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+      flex: 1;
+    }
+
+    .change-group-meta {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .change-group-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 4px;
+    }
+
+    .change-group-desc {
       font-size: 12px;
-      color: #94a3b8;
+      color: var(--muted);
       line-height: 1.45;
     }
 
-    .monitor-item-actions {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-left: 14px;
-      flex-shrink: 0;
-    }
-
-    .impact-badge {
-      min-width: 36px;
-      text-align: center;
-      font-size: 13px;
-      font-weight: 800;
-      opacity: .65;
-    }
-
-    .impact-badge.negative {
-      color: var(--danger);
-    }
-
-    .impact-badge.positive {
-      color: var(--success);
-    }
-
-    .category-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
+    .change-group-btn {
+      border: 1px solid #dbe2ea;
+      background: #f8fafc;
+      color: #0f172a;
+      border-radius: 10px;
+      padding: 8px 12px;
       font-size: 12px;
       font-weight: 700;
-      padding: 4px 10px;
-      border-radius: 999px;
-      margin-bottom: 8px;
-      border: 1px solid var(--line);
-      background: #f8fafc;
-      color: #334155;
+      cursor: pointer;
+      white-space: nowrap;
     }
 
-    .category-badge.admissao { background: #ecfdf5; color: #166534; border-color: #bbf7d0; }
-    .category-badge.desligamento { background: #fef2f2; color: #b91c1c; border-color: #fecaca; }
-    .category-badge.promocao { background: #eff6ff; color: #1d4ed8; border-color: #bfdbfe; }
-    .category-badge.efetivacao { background: #f5f3ff; color: #6d28d9; border-color: #ddd6fe; }
-    .category-badge.afastamento { background: #fff7ed; color: #c2410c; border-color: #fed7aa; }
-    .category-badge.situacao_alterada, .category-badge.saida_base { background: #f8fafc; color: #475569; border-color: #cbd5e1; }
-
-    .btn-outline {
-      background: #fff;
-      color: #111827;
-      border: 1px solid #d1d5db;
+    .change-group-btn:hover {
+      background: #eff6ff;
+      border-color: #bfdbfe;
     }
 
-    .detail-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
-    }
-
-    .detail-card {
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      padding: 16px;
-      background: var(--soft);
-    }
-
-    .detail-card h4 {
-      margin: 0 0 12px;
-      font-size: 15px;
-    }
-
-    .detail-list {
-      display: grid;
+    .change-group-panel {
+      margin-top: 12px;
+      border-top: 1px dashed #dbe2ea;
+      padding-top: 12px;
+      display: none;
+      flex-direction: column;
       gap: 10px;
     }
 
-    .detail-item {
+    .change-group-panel.show {
       display: flex;
-      justify-content: space-between;
-      gap: 12px;
-      font-size: 13px;
-      padding-bottom: 8px;
-      border-bottom: 1px dashed #dbe4ee;
     }
 
-    .detail-item:last-child {
-      border-bottom: 0;
-      padding-bottom: 0;
-    }
-
-    .detail-item span:last-child {
-      font-weight: 700;
-      text-align: right;
-      color: #0f172a;
-      word-break: break-word;
-    }
-
-    .info-list {
-      display: grid;
-      gap: 10px;
-    }
-
-    .info-item {
-      display: flex;
-      justify-content: space-between;
-      gap: 12px;
-      padding: 12px 14px;
-      border: 1px solid var(--line);
+    .change-subitem {
+      border: 1px solid #edf1f5;
+      background: #fbfdff;
       border-radius: 12px;
-      font-size: 14px;
-      background: #fff;
+      padding: 10px 12px;
     }
 
-    .info-item strong {
-      color: #111827;
-      text-align: right;
+    .change-subitem-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 4px;
+    }
+
+    .change-subitem-desc {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.45;
       word-break: break-word;
     }
 
-    .actions {
+    .change-details-list {
       display: flex;
-      gap: 12px;
+      flex-direction: column;
+      gap: 10px;
+      max-height: 56vh;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .change-details-list::-webkit-scrollbar{
+      width:8px;
+    }
+
+    .change-details-list::-webkit-scrollbar-thumb{
+      background:#cbd5e1;
+      border-radius:999px;
+    }
+
+    .change-details-summary {
+      font-size: 13px;
+      color: var(--muted);
+      margin: 8px 0 16px;
+    }
+
+    .text-danger { color: var(--danger); }
+    .text-success { color: var(--success); }
+    .text-warning { color: #c2410c; }
+    .text-neutral { color: #0f172a; }
+
+    .module-footer {
+      padding: 0 18px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .btn-row {
+      display: flex;
       flex-wrap: wrap;
-      margin-top: 18px;
+      gap: 10px;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
     }
 
     .btn {
       border: 0;
       border-radius: 12px;
-      padding: 12px 18px;
+      padding: 10px 16px;
       cursor: pointer;
       font-weight: 700;
       transition: .15s ease;
+      font-size: 14px;
     }
 
-    .btn:hover {
-      transform: translateY(-1px);
-    }
-
-    .btn-primary {
-      background: var(--brand);
-      color: #fff;
-    }
-
-    .btn-dark {
-      background: #111827;
-      color: #fff;
-    }
-
-    .btn-light {
-      background: #e5e7eb;
-      color: #111827;
-    }
-
-    .btn-success {
-      background: var(--success);
-      color: #fff;
-    }
-
-    .btn-danger {
-      background: var(--danger);
-      color: #fff;
-    }
-
-    .btn:disabled {
-      opacity: .6;
-      cursor: not-allowed;
-      transform: none;
-    }
+    .btn:hover { transform: translateY(-1px); }
+    .btn-primary { background: var(--brand); color: #fff; }
+    .btn-light { background: #e5e7eb; color: #111827; }
+    .btn-success { background: var(--success); color: #fff; }
+    .btn-danger { background: var(--danger); color: #fff; }
 
     .status {
-      margin-top: 14px;
       padding: 12px 14px;
       border-radius: 12px;
       display: none;
-      font-size: 14px;
+      font-size: 13px;
       line-height: 1.45;
     }
 
-    .status.show {
-      display: block;
+    .status.show { display: block; }
+    .status.success { background: #dcfce7; color: #166534; }
+    .status.error { background: #fee2e2; color: #991b1b; }
+    .status.warning { background: #fef3c7; color: #92400e; }
+
+    .panel-toast{
+      position:absolute;
+      top:16px;
+      left:50%;
+      transform:translateX(-50%) translateY(-8px);
+      z-index:12;
+      min-width:280px;
+      max-width:calc(100% - 48px);
+      box-shadow:0 14px 28px rgba(15,23,42,.12);
+      opacity:0;
+      pointer-events:none;
+      transition:opacity .2s ease, transform .2s ease;
     }
 
-    .status.success {
-      background: #dcfce7;
-      color: #166534;
+    .panel-toast.show{
+      display:block;
+      opacity:1;
+      transform:translateX(-50%) translateY(0);
     }
 
-    .status.error {
-      background: #fee2e2;
-      color: #991b1b;
+    .wide-card {
+      margin-top: 18px;
+      background: var(--card);
+      border: 1px solid #edf1f5;
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow);
+      padding: 18px;
     }
 
-    .status.warning {
-      background: #fef3c7;
-      color: #92400e;
+    .wide-card h3 {
+      margin: 0 0 14px;
+      font-size: 18px;
+    }
+
+    .filter-summary {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .filter-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #eff6ff;
+      color: #1d4ed8;
+      border: 1px solid #bfdbfe;
+      border-radius: 999px;
+      padding: 10px 14px;
+      font-size: 13px;
+    }
+
+    .filter-pill button {
+      border: 0;
+      background: transparent;
+      color: inherit;
+      cursor: pointer;
+      font-weight: 700;
+      padding: 0;
+      font-size: 14px;
+    }
+
+    .empty-box {
+      border: 1px dashed #cbd5e1;
+      border-radius: 14px;
+      padding: 18px;
+      color: var(--muted);
+      font-size: 14px;
+      background: #fff;
+      width: 100%;
     }
 
     .modal-backdrop {
@@ -486,9 +675,7 @@
       z-index: 50;
     }
 
-    .modal-backdrop.show {
-      display: flex;
-    }
+    .modal-backdrop.show { display: flex; }
 
     .modal {
       width: 100%;
@@ -524,9 +711,7 @@
       flex-shrink: 0;
     }
 
-    .modal-body {
-      padding: 24px;
-    }
+    .modal-body { padding: 24px; }
 
     .wizard-steps {
       display: flex;
@@ -560,17 +745,10 @@
       margin-bottom: 4px;
     }
 
-    .wizard-panel {
-      display: none;
-    }
+    .wizard-panel { display: none; }
+    .wizard-panel.show { display: block; }
 
-    .wizard-panel.show {
-      display: block;
-    }
-
-    .field {
-      margin-bottom: 16px;
-    }
+    .field { margin-bottom: 16px; }
 
     .field label {
       display: block;
@@ -659,54 +837,171 @@
       color: #fff;
     }
 
-    .chip.soft-active {
-      background: #eff6ff;
-      border-color: #93c5fd;
-      color: #1d4ed8;
+    .hidden { display: none !important; }
+
+    .profile-strip{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+      margin-bottom:14px;
+      flex-wrap:wrap;
     }
 
-    .empty-box {
-      border: 1px dashed #cbd5e1;
-      border-radius: 14px;
-      padding: 18px;
-      color: var(--muted);
-      font-size: 14px;
-      background: #fff;
+    .profile-slot{
+      border:1px solid #dbe2ea;
+      background:#f8fafc;
+      color:#0f172a;
+      border-radius:14px;
+      padding:10px 14px;
+      min-height:46px;
+      min-width:110px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      cursor:pointer;
+      font-weight:700;
+      font-size:13px;
+      transition:.15s ease;
     }
 
-    .filter-summary {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
+    .profile-slot:hover{
+      transform:translateY(-1px);
+      border-color:#93c5fd;
+      background:#eff6ff;
     }
 
-    .filter-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      background: #eff6ff;
-      color: #1d4ed8;
-      border: 1px solid #bfdbfe;
-      border-radius: 999px;
-      padding: 10px 14px;
-      font-size: 13px;
+    .profile-slot.active{
+      background:linear-gradient(135deg, var(--brand), var(--brand-2));
+      color:#fff;
+      border-color:transparent;
+      box-shadow:0 10px 24px rgba(14,165,233,.18);
     }
 
-    .filter-pill button {
-      border: 0;
-      background: transparent;
-      color: inherit;
-      cursor: pointer;
-      font-weight: 700;
-      padding: 0;
-      font-size: 14px;
+    .profile-slot.empty{
+      border-style:dashed;
+      color:var(--muted);
+      background:#fff;
     }
 
-    .mini-note {
-      margin-top: 12px;
-      color: var(--muted);
-      font-size: 13px;
-      line-height: 1.5;
+    .profile-slot small{
+      display:block;
+      font-size:11px;
+      font-weight:600;
+      opacity:.82;
+      margin-top:2px;
+    }
+
+    .profile-slot-text{
+      display:flex;
+      flex-direction:column;
+      align-items:flex-start;
+      line-height:1.2;
+      min-width:0;
+    }
+
+    .profile-slot-text span,
+    .profile-slot-text small{
+      max-width:132px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+
+    .compact-filters-wrap{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      margin-bottom:12px;
+      min-height:44px;
+    }
+
+    .compact-filters-nav{
+      border:1px solid #dbe2ea;
+      background:#fff;
+      color:#0f172a;
+      width:34px;
+      height:34px;
+      border-radius:999px;
+      cursor:pointer;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:16px;
+      flex-shrink:0;
+    }
+
+    .compact-filters-nav.hidden{
+      display:none !important;
+    }
+
+    .compact-filters-viewport{
+      flex:1;
+      min-width:0;
+      overflow:hidden;
+    }
+
+    .compact-filters-track{
+      display:grid;
+      grid-template-columns: repeat(var(--filter-cols, 3), minmax(0, 1fr));
+      align-items:center;
+      gap:8px;
+      width:100%;
+    }
+
+    .compact-filter-pill{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:6px;
+      height:36px;
+      padding:0 14px;
+      border-radius:999px;
+      border:1px solid #bfdbfe;
+      background:#eff6ff;
+      color:#1d4ed8;
+      font-size:13px;
+      white-space:nowrap;
+      min-width:0;
+      width:100%;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+
+    .compact-filter-pill strong{
+      display:none;
+    }
+
+    .compact-filter-empty{
+      color:var(--muted);
+      font-size:13px;
+      padding:8px 2px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+
+    .filter-quick-row{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom:2px;
+      flex-wrap:wrap;
+    }
+
+    .filter-quick-row h4{
+      margin:0;
+      font-size:14px;
+      color:#0f172a;
+    }
+
+    .field-inline-grid{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:14px;
+      margin-bottom:16px;
     }
 
     .toggle-manual {
@@ -718,48 +1013,115 @@
       font-weight: 700;
     }
 
-    .hidden {
-      display: none !important;
+    .filter-box-inline{
+      margin-top: 6px;
+      padding: 14px;
+      border: 1px solid #e5e7eb;
+      border-radius: 16px;
+      background: #f8fafc;
+    }
+
+    .filter-box-head{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom:12px;
+    }
+
+    .filter-box-head h4{
+      margin:0;
+      font-size:15px;
+    }
+
+    .btn-sm{
+      padding: 8px 12px;
+      font-size: 13px;
+    }
+    .hc-module{
+        position: relative;
+      }
+
+      .panel-loading{
+        position: absolute;
+        inset: 0;
+        background: rgba(255,255,255,.72);
+        backdrop-filter: blur(2px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 5;
+        border-radius: var(--radius-xl);
+      }
+
+      .panel-loading.hidden{
+        display: none;
+      }
+
+      .panel-loading-box{
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        background: #ffffff;
+        padding: 18px 22px;
+        border-radius: 16px;
+        box-shadow: 0 10px 30px rgba(0,0,0,.08);
+        font-size: 14px;
+        color: var(--muted);
+      }
+
+      .spinner{
+        width: 34px;
+        height: 34px;
+        border: 4px solid #e5e7eb;
+        border-top: 4px solid var(--brand);
+        border-radius: 50%;
+        animation: spin .8s linear infinite;
+      }
+
+      @keyframes spin{
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+      }
+    @media (max-width: 1200px) {
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
     }
 
     @media (max-width: 980px) {
-      .grid {
-        grid-template-columns: 1fr;
-      }
-
       .split {
         grid-template-columns: 1fr;
       }
 
-      .modal {
-        max-width: 96vw;
+      .module-header {
+        grid-template-columns: 44px 1fr 44px;
       }
 
-      .detail-grid {
-        grid-template-columns: 1fr;
+      .change-card {
+        flex-direction: column;
+      }
+
+      .profile-strip{
+        gap:8px;
+      }
+
+      .profile-slot{
+        min-width:calc(50% - 4px);
       }
     }
 
     @media (max-width: 768px) {
-      .topbar {
-        padding: 16px;
-      }
-
-      .content {
-        padding: 16px;
-      }
-
-      .hc-total {
-        font-size: 54px;
-      }
-
-      .modal-body {
-        padding: 16px;
-      }
-
-      .modal-head {
-        padding: 16px;
-      }
+      .topbar { padding: 16px; }
+      .content { padding: 12px; }
+      .workspace { padding: 12px; }
+      .module-title h2 { font-size: 22px; }
+      .hc-total { font-size: 64px; }
+      .modal-body, .modal-head { padding: 16px; }
+      .profile-slot{ min-width:100%; }
+      .compact-filters-wrap{ gap:6px; }
+      .compact-filter-pill{ max-width:260px; overflow:hidden; text-overflow:ellipsis; }
     }
   </style>
 </head>
@@ -783,1140 +1145,1392 @@
       <header class="topbar">
         <div>
           <h1>Gestão H.C.</h1>
-          <p>Tela inicial com leitura da base principal de HeadCount e filtro padrão salvo.</p>
+          <p>Painel principal com módulos independentes de monitoramento.</p>
         </div>
 
         <button id="openConfig" class="config-btn" type="button">⚙ Configuração</button>
       </header>
 
       <main class="content">
-        <div class="grid">
-          <section class="card">
-            <h2>Total do HeadCount filtrado</h2>
-
-            <div class="hc-box">
-              <div class="hc-label">Total carregado com base nos filtros configurados</div>
-              <div class="hc-total-wrap">
-                <div class="hc-delta-col">
-                  <div id="hcDeltaPositive" class="hc-delta positive hidden"></div>
-                </div>
-                <div id="hcTotal" class="hc-total">--</div>
-                <div class="hc-delta-col">
-                  <div id="hcDeltaNegative" class="hc-delta negative hidden"></div>
+        <section class="workspace">
+          <div class="dashboard-grid">
+            <!-- MÓDULO INDIVIDUAL: HEADCOUNT -->
+            <section class="module-card hc-module" id="hcModule">
+              <div id="hcPanelLoading" class="panel-loading hidden">
+                <div class="panel-loading-box">
+                  <div class="spinner"></div>
+                  <div>Carregando HeadCount...</div>
                 </div>
               </div>
-              <div id="hcPreview" class="hc-preview hidden"></div>
-              <div id="hcSub" class="hc-sub">Carregando dados da base...</div>
-            </div>
 
-            <div class="actions">
-              <button id="reloadData" class="btn btn-primary" type="button">Atualizar total</button>
-              <button id="openConfig2" class="btn btn-light" type="button">Configurar base</button>
-            </div>
+              <div class="module-header">
+                <button id="reloadIconBtn" class="module-icon-btn secondary" type="button" title="Atualizar painel" aria-label="Atualizar painel">↻</button>
+                <div class="module-title">
+                  <h2>HeadCount monitorado</h2>
+                  <p>
+                    Este painel é individual. A planilha, a aba e os filtros usados aqui
+                    pertencem somente a este módulo.
+                  </p>
+                </div>
 
-            <div id="mainStatus" class="status"></div>
-          </section>
+                <button id="openConfigModule" class="module-icon-btn" type="button" title="Configurar painel" aria-label="Configurar painel">⚙</button>
+              </div>
 
-          <section class="card">
-            <h2>Base conectada</h2>
-            <div class="info-list">
-              <div class="info-item">
-                <span>Planilha</span>
-                <strong id="infoSpreadsheet">--</strong>
-              </div>
-              <div class="info-item">
-                <span>ID da planilha</span>
-                <strong id="infoSheetId">--</strong>
-              </div>
-              <div class="info-item">
-                <span>Aba</span>
-                <strong id="infoTab">--</strong>
-              </div>
-              <div class="info-item">
-                <span>Total de linhas lidas</span>
-                <strong id="infoRows">--</strong>
-              </div>
-              <div class="info-item">
-                <span>Total após filtro</span>
-                <strong id="infoFilteredRows">--</strong>
-              </div>
-            </div>
-          </section>
-        </div>
+              <div class="module-body">
+                <div class="profile-strip" id="filterProfilesStrip"></div>
 
-        <div class="grid-bottom">
-          <section class="card">
-            <h2>Filtros padrão ativos</h2>
-            <div id="activeFilters" class="filter-summary">
-              <div class="empty-box">Nenhum filtro salvo.</div>
-            </div>
-          </section>
+                <div class="filter-quick-row">
+                  <h4 id="activeFiltersTitle">0 filtros ativos</h4>
+                  <button id="openFilterEditorTop" class="btn btn-light btn-sm" type="button">Alterar filtros</button>
+                </div>
 
-          <section class="card">
-            <h2>Alterações detectadas</h2>
-            <div class="info-item">
-              <span>Última verificação</span>
-              <strong id="monitorLastCheck">--</strong>
-            </div>
-            <div style="height: 12px;"></div>
-            <div id="monitorList" class="info-list">
-              <div class="info-item">
-                <span>Nenhuma alteração detectada até agora.</span>
-                <strong>OK</strong>
+                <div class="compact-filters-wrap">
+                  <button id="filtersPrev" class="compact-filters-nav hidden" type="button" aria-label="Ver filtros anteriores">◀</button>
+                  <div class="compact-filters-viewport">
+                    <div id="activeFiltersTrack" class="compact-filters-track"></div>
+                  </div>
+                  <button id="filtersNext" class="compact-filters-nav hidden" type="button" aria-label="Ver próximos filtros">▶</button>
+                </div>
+
+                <div class="hc-center">
+                  <div class="hc-label">Total atual com os filtros ativos</div>
+                  <div class="hc-total-wrap">
+                    <div id="hcTotal" class="hc-total">--</div>
+                    <div id="hcProjectedTotal" class="hc-total-preview" title="Total sugerido pelas alterações do dia"></div>
+                  </div>
+                  <div id="hcSub" class="hc-sub">Carregando dados da base...</div>
+                </div>
+
+                <div class="changes-panel">
+                  <div class="changes-panel-head">
+                    <h4>Alterações identificadas</h4>
+                    <div class="changes-panel-sub" id="changesPanelSub">Aguardando monitoramento...</div>
+                  </div>
+                  <div id="changesList" class="changes-list">
+                    <div class="changes-empty">Nenhuma alteração detectada até o momento.</div>
+                  </div>
+                </div>
               </div>
-            </div>
-          </section>
-        </div>
+
+              <div class="module-footer">
+                <div id="mainStatus" class="status panel-toast"></div>
+              </div>
+            </section>
+
+            <!-- ESPAÇO RESERVADO PARA FUTURO PAINEL -->
+            <section class="module-card placeholder">
+              Futuro painel: Turnover / outro módulo
+            </section>
+          </div>
+        </section>
       </main>
     </section>
   </div>
-
-  <div id="detailsModal" class="modal-backdrop">
-    <div class="modal" style="max-width: 880px;">
-      <div class="modal-head">
-        <h3>Detalhes da alteração</h3>
-        <button id="closeDetails" class="modal-close" type="button">×</button>
-      </div>
-      <div class="modal-body">
-        <div id="detailsHeader" class="mini-note" style="margin-top:0;"></div>
-        <div style="height: 16px;"></div>
-        <div id="detailsBody"></div>
-      </div>
-    </div>
-  </div>
-
+  <!-- MODAL: CONFIGURAÇÃO DO PAINEL -->
   <div id="configModal" class="modal-backdrop">
     <div class="modal">
       <div class="modal-head">
-        <h3>Configuração da base de dados</h3>
+        <h3>Configurar painel</h3>
         <button id="closeConfig" class="modal-close" type="button">×</button>
       </div>
 
       <div class="modal-body">
-        <div class="wizard-steps">
-          <div id="stepIndicator1" class="wizard-step active">
-            <strong>Etapa 1</strong>
-            Informar a planilha
-          </div>
-          <div id="stepIndicator2" class="wizard-step">
-            <strong>Etapa 2</strong>
-            Escolher a aba
-          </div>
-          <div id="stepIndicator3" class="wizard-step">
-            <strong>Etapa 3</strong>
-            Definir filtros
+        <div id="configStatus" class="status"></div>
+
+        <div class="field">
+          <label for="sheetInput">Link ou ID da planilha</label>
+          <input id="sheetInput" type="text" placeholder="Cole aqui o link completo ou o ID da planilha" />
+          <small>Ex.: https://docs.google.com/spreadsheets/d/... ou apenas o ID.</small>
+        </div>
+
+        <div class="field">
+          <label for="tabSelect">Escolha a aba</label>
+          <select id="tabSelect">
+            <option value="">Selecione uma aba</option>
+          </select>
+          <small id="tabSelectHelp">O sistema tenta buscar automaticamente as abas da planilha.</small>
+        </div>
+
+        <div class="field hidden" id="manualTabField">
+          <label for="tabInputManual">Digite o nome da aba</label>
+          <input id="tabInputManual" type="text" placeholder="Ex.: H.C. TT" />
+          <small>Use esta opção se preferir digitar manualmente.</small>
+        </div>
+
+        <span id="toggleManualTab" class="toggle-manual">Digitar a aba manualmente</span>
+
+        <div class="mini-note" id="sheetPreviewText" style="margin-top:12px;">Nenhuma planilha validada ainda.</div>
+
+        <div class="modal-actions">
+          <button id="btnBuscarAbas" class="btn btn-primary" type="button">Buscar abas</button>
+          <button id="btnSavePanelConfig" class="btn btn-success" type="button">Salvar painel</button>
+          <button id="btnCancelarConfig" class="btn btn-light" type="button">Cancelar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: FILTROS -->
+  <div id="filterModal" class="modal-backdrop">
+    <div class="modal">
+      <div class="modal-head">
+        <h3>Alterar filtros</h3>
+        <button id="closeFilterModal" class="modal-close" type="button">×</button>
+      </div>
+
+      <div class="modal-body">
+        <div id="filterStatus" class="status"></div>
+
+        <div class="selection-box" style="min-height:auto; margin-bottom:18px;">
+          <h4>Perfil de filtro</h4>
+          <div class="field-inline-grid">
+            <div class="field" style="margin-bottom:0;">
+              <label for="filterProfileName">Nome do perfil</label>
+              <input id="filterProfileName" type="text" maxlength="40" placeholder="Ex.: Warehouse Trabalhando" />
+              <small>Você pode salvar até 3 perfis diferentes para alternar mais rápido.</small>
+            </div>
           </div>
         </div>
 
-        <div id="wizardStatus" class="status"></div>
-
-        <!-- ETAPA 1 -->
-        <div id="wizardStep1" class="wizard-panel show">
-          <div class="field">
-            <label for="sheetInput">Link ou ID da planilha</label>
-            <input
-              id="sheetInput"
-              type="text"
-              placeholder="Cole aqui o link completo ou o ID da planilha"
-            />
-            <small>
-              Ex.: https://docs.google.com/spreadsheets/d/... ou apenas o ID da planilha.
-            </small>
+        <div class="split">
+          <div class="selection-box">
+            <h4>Colunas disponíveis para filtro</h4>
+            <div id="columnsBox" class="chips-grid"></div>
+            <div id="columnsEmpty" class="empty-box hidden">Nenhuma coluna encontrada.</div>
           </div>
 
-          <div class="modal-actions">
-            <button id="btnStep1Continue" class="btn btn-primary" type="button">Continuar</button>
-            <button id="btnCancelar1" class="btn btn-light" type="button">Cancelar</button>
+          <div class="selection-box">
+            <h4>Valores da coluna selecionada</h4>
+            <div id="selectedColumnLabel" class="mini-note" style="margin-top:0;">Nenhuma coluna selecionada.</div>
+            <div style="height: 12px;"></div>
+            <div id="columnValuesBox" class="chips-grid"></div>
+            <div id="valuesEmpty" class="empty-box">Selecione uma coluna para ver os valores.</div>
           </div>
         </div>
 
-        <!-- ETAPA 2 -->
-        <div id="wizardStep2" class="wizard-panel">
-          <div class="field">
-            <label for="tabSelect">Escolha a aba</label>
-            <select id="tabSelect">
-              <option value="">Selecione uma aba</option>
-            </select>
-            <small id="tabSelectHelp">
-              O sistema tentou buscar automaticamente as abas disponíveis da planilha.
-            </small>
-          </div>
+        <div style="height: 18px;"></div>
 
-          <div class="field hidden" id="manualTabField">
-            <label for="tabInputManual">Digite o nome da aba</label>
-            <input
-              id="tabInputManual"
-              type="text"
-              placeholder="Ex.: H.C. TT"
-            />
-            <small>Use esta opção se preferir digitar manualmente.</small>
-          </div>
-
-          <span id="toggleManualTab" class="toggle-manual">Digitar a aba manualmente</span>
-
-          <div class="mini-note" id="sheetPreviewText">
-            Nenhuma planilha validada ainda.
-          </div>
-
-          <div class="modal-actions">
-            <button id="btnStep2Back" class="btn btn-light" type="button">Voltar</button>
-            <button id="btnStep2Continue" class="btn btn-primary" type="button">Continuar</button>
-            <button id="btnCancelar2" class="btn btn-light" type="button">Cancelar</button>
+        <div class="selection-box" style="min-height:auto;">
+          <h4>Filtros escolhidos</h4>
+          <div id="selectedFiltersSummary" class="filter-summary">
+            <div class="empty-box">Nenhum filtro montado ainda.</div>
           </div>
         </div>
 
-        <!-- ETAPA 3 -->
-        <div id="wizardStep3" class="wizard-panel">
-          <div class="split">
-            <div class="selection-box">
-              <h4>Colunas disponíveis para filtro</h4>
-              <div id="columnsBox" class="chips-grid"></div>
-              <div id="columnsEmpty" class="empty-box hidden">Nenhuma coluna encontrada.</div>
-              <div class="mini-note">
-                Clique em uma coluna para carregar os valores disponíveis e montar o filtro inicial.
-              </div>
-            </div>
+        <div class="modal-actions">
+          <button id="btnClearFilters" class="btn btn-danger" type="button">Excluir filtro</button>
+          <button id="btnSaveFiltersOnly" class="btn btn-success" type="button">Salvar filtros</button>
+          <button id="btnCancelarFilter" class="btn btn-light" type="button">Cancelar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="changeDetailsModal" class="modal-backdrop">
+    <div class="modal">
+      <div class="modal-head">
+        <h3 id="changeDetailsTitle">Detalhes das alterações</h3>
+        <button id="closeChangeDetailsModal" class="modal-close" type="button">×</button>
+      </div>
 
-            <div class="selection-box">
-              <h4>Valores da coluna selecionada</h4>
-              <div id="selectedColumnLabel" class="mini-note" style="margin-top:0;">
-                Nenhuma coluna selecionada.
-              </div>
-              <div style="height: 12px;"></div>
-              <div id="columnValuesBox" class="chips-grid"></div>
-              <div id="valuesEmpty" class="empty-box">Selecione uma coluna para ver os valores.</div>
-            </div>
-          </div>
-
-          <div style="height: 18px;"></div>
-
-          <div class="selection-box" style="min-height:auto;">
-            <h4>Filtros escolhidos</h4>
-            <div id="selectedFiltersSummary" class="filter-summary">
-              <div class="empty-box">Nenhum filtro montado ainda.</div>
-            </div>
-            <div class="mini-note">
-              Exemplo: <strong>Descrição (Situação) = Trabalhando</strong> e <strong>Empresa = CD FISIA</strong>.
-            </div>
-          </div>
-
-          <div class="modal-actions">
-            <button id="btnStep3Back" class="btn btn-light" type="button">Voltar</button>
-            <button id="btnClearFilters" class="btn btn-danger" type="button">Limpar filtros</button>
-            <button id="btnSaveConfig" class="btn btn-success" type="button">Concluir configuração</button>
-            <button id="btnCancelar3" class="btn btn-light" type="button">Cancelar</button>
-          </div>
+      <div class="modal-body">
+        <div id="changeDetailsSummary" class="change-details-summary">Nenhum detalhe carregado.</div>
+        <div id="changeDetailsList" class="change-details-list">
+          <div class="changes-empty">Nenhuma alteração encontrada.</div>
         </div>
       </div>
     </div>
   </div>
 
   <script>
-    const sidebar = document.getElementById("sidebar");
-    const toggleSidebar = document.getElementById("toggleSidebar");
+  const DEFAULT_FILTERS = {
+    "Área": ["WAREHOUSE"],
+    "Descrição (Situação)": ["Trabalhando"],
+    "Apelido (Filial)": ["CD 2103 | FISIA"]
+  };
 
-    const openConfig = document.getElementById("openConfig");
-    const openConfig2 = document.getElementById("openConfig2");
-    const closeConfig = document.getElementById("closeConfig");
-    const configModal = document.getElementById("configModal");
-    const detailsModal = document.getElementById("detailsModal");
-    const closeDetails = document.getElementById("closeDetails");
-    const detailsHeader = document.getElementById("detailsHeader");
-    const detailsBody = document.getElementById("detailsBody");
+  const sidebar = document.getElementById("sidebar");
+  const toggleSidebar = document.getElementById("toggleSidebar");
 
-    const hcTotal = document.getElementById("hcTotal");
-    const hcDeltaPositive = document.getElementById("hcDeltaPositive");
-    const hcDeltaNegative = document.getElementById("hcDeltaNegative");
-    const hcPreview = document.getElementById("hcPreview");
-    const hcSub = document.getElementById("hcSub");
-    const infoSpreadsheet = document.getElementById("infoSpreadsheet");
-    const infoSheetId = document.getElementById("infoSheetId");
-    const infoTab = document.getElementById("infoTab");
-    const infoRows = document.getElementById("infoRows");
-    const infoFilteredRows = document.getElementById("infoFilteredRows");
-    const activeFilters = document.getElementById("activeFilters");
-    const mainStatus = document.getElementById("mainStatus");
+  const openConfig = document.getElementById("openConfig");
+  const reloadIconBtn = document.getElementById("reloadIconBtn");
+  const openConfigModule = document.getElementById("openConfigModule");
+  const openFilterEditor = document.getElementById("openFilterEditor");
+  const openFilterEditorTop = document.getElementById("openFilterEditorTop");
 
-    const monitorLastCheck = document.getElementById("monitorLastCheck");
-    const monitorList = document.getElementById("monitorList");
+  const configModal = document.getElementById("configModal");
+  const filterModal = document.getElementById("filterModal");
 
-    const wizardStatus = document.getElementById("wizardStatus");
+  const closeConfig = document.getElementById("closeConfig");
+  const closeFilterModal = document.getElementById("closeFilterModal");
 
-    const sheetInput = document.getElementById("sheetInput");
-    const tabSelect = document.getElementById("tabSelect");
-    const tabInputManual = document.getElementById("tabInputManual");
-    const manualTabField = document.getElementById("manualTabField");
-    const toggleManualTab = document.getElementById("toggleManualTab");
-    const sheetPreviewText = document.getElementById("sheetPreviewText");
+  const btnCancelarConfig = document.getElementById("btnCancelarConfig");
+  const btnCancelarFilter = document.getElementById("btnCancelarFilter");
 
-    const columnsBox = document.getElementById("columnsBox");
-    const columnValuesBox = document.getElementById("columnValuesBox");
-    const selectedColumnLabel = document.getElementById("selectedColumnLabel");
-    const selectedFiltersSummary = document.getElementById("selectedFiltersSummary");
-    const columnsEmpty = document.getElementById("columnsEmpty");
-    const valuesEmpty = document.getElementById("valuesEmpty");
+  const btnBuscarAbas = document.getElementById("btnBuscarAbas");
+  const btnSavePanelConfig = document.getElementById("btnSavePanelConfig");
+  const btnSaveFiltersOnly = document.getElementById("btnSaveFiltersOnly");
+  const btnClearFilters = document.getElementById("btnClearFilters");
 
-    const btnStep1Continue = document.getElementById("btnStep1Continue");
-    const btnStep2Back = document.getElementById("btnStep2Back");
-    const btnStep2Continue = document.getElementById("btnStep2Continue");
-    const btnStep3Back = document.getElementById("btnStep3Back");
-    const btnSaveConfig = document.getElementById("btnSaveConfig");
-    const btnClearFilters = document.getElementById("btnClearFilters");
-    const reloadData = document.getElementById("reloadData");
+  const hcTotal = document.getElementById("hcTotal");
+  const hcProjectedTotal = document.getElementById("hcProjectedTotal");
+  const hcSub = document.getElementById("hcSub");
+  const activeFiltersTrack = document.getElementById("activeFiltersTrack");
+  const filtersPrev = document.getElementById("filtersPrev");
+  const filtersNext = document.getElementById("filtersNext");
+  const filterProfilesStrip = document.getElementById("filterProfilesStrip");
+  const mainStatus = document.getElementById("mainStatus");
+  const changesList = document.getElementById("changesList");
+  const changesPanelSub = document.getElementById("changesPanelSub");
 
-    const cancelButtons = [
-      document.getElementById("btnCancelar1"),
-      document.getElementById("btnCancelar2"),
-      document.getElementById("btnCancelar3")
-    ];
+  const configStatus = document.getElementById("configStatus");
+  const filterStatus = document.getElementById("filterStatus");
 
-    const wizardState = {
-      step: 1,
-      sheet_id: "",
-      spreadsheet_name: "",
-      tabs: [],
-      tab_name: "",
-      columns: [],
-      selectedColumn: "",
-      filters: {}
-    };
+  const sheetInput = document.getElementById("sheetInput");
+  const tabSelect = document.getElementById("tabSelect");
+  const tabInputManual = document.getElementById("tabInputManual");
+  const manualTabField = document.getElementById("manualTabField");
+  const toggleManualTab = document.getElementById("toggleManualTab");
+  const sheetPreviewText = document.getElementById("sheetPreviewText");
 
-    let monitorInterval = null;
-    let manualTabMode = false;
-    const monitorState = {
-      confirmedTotal: null,
-      deltaPositivo: 0,
-      deltaNegativo: 0
-    };
+  const columnsBox = document.getElementById("columnsBox");
+  const columnValuesBox = document.getElementById("columnValuesBox");
+  const selectedColumnLabel = document.getElementById("selectedColumnLabel");
+  const selectedFiltersSummary = document.getElementById("selectedFiltersSummary");
+  const activeFiltersTitle = document.getElementById("activeFiltersTitle");
+  const filterProfileName = document.getElementById("filterProfileName");
+  const columnsEmpty = document.getElementById("columnsEmpty");
+  const valuesEmpty = document.getElementById("valuesEmpty");
 
-    function showStatus(el, msg, type = "success") {
-      el.className = "status show " + type;
-      el.textContent = msg;
+  const hcPanelLoading = document.getElementById("hcPanelLoading");
+
+  const wizardState = {
+    sheet_id: "",
+    spreadsheet_name: "",
+    tabs: [],
+    tab_name: "",
+    columns: [],
+    selectedColumn: "",
+    filters: {}
+  };
+
+  let monitorInterval = null;
+  let manualTabMode = false;
+  let activeFilterPage = 0;
+  let filterPageGroups = [];
+  let pendingProfileSlot = null;
+  let currentProfileSlot = 0;
+  const MAX_FILTER_PROFILES = 3;
+  const FILTER_PROFILE_STORAGE_KEY = "planejamento_hc_filter_profiles_v3";
+  const FILTER_ACTIVE_SLOT_STORAGE_KEY = "planejamento_hc_filter_profiles_active_slot_v1";
+  const FILTERS_PER_VIEW = 3;
+  let mainStatusTimer = null;
+  const DAILY_CHANGES_STORAGE_KEY = "planejamento_hc_daily_changes_v1";
+
+  function showStatus(el, msg, type = "success") {
+    if (!el) return;
+    const extra = el.id === "mainStatus" ? " panel-toast" : "";
+    el.className = "status" + extra + " show " + type;
+    el.textContent = msg;
+
+    if (el.id === "mainStatus") {
+      if (mainStatusTimer) clearTimeout(mainStatusTimer);
+      mainStatusTimer = setTimeout(() => {
+        clearStatus(el);
+      }, 3000);
     }
+  }
 
-    function clearStatus(el) {
-      el.className = "status";
-      el.textContent = "";
+  function clearStatus(el) {
+    if (!el) return;
+    const extra = el.id === "mainStatus" ? " panel-toast" : "";
+    el.className = "status" + extra;
+    el.textContent = "";
+  }
+
+  function setHCLoading(isLoading) {
+    if (!hcPanelLoading) return;
+    hcPanelLoading.classList.toggle("hidden", !isLoading);
+  }
+
+  function setModalLoading(modal, isLoading) {
+    if (!modal) return;
+    modal.classList.toggle("loading", isLoading);
+  }
+
+  function safeArray(v) {
+    return Array.isArray(v) ? v : [];
+  }
+
+  function escapeHtml(text) {
+    const div = document.createElement("div");
+    div.textContent = String(text ?? "");
+    return div.innerHTML;
+  }
+
+  function normalizeText(v) {
+    return String(v ?? "").trim();
+  }
+
+  function getEffectiveFilters(filters) {
+    const obj = filters && Object.keys(filters).length ? filters : DEFAULT_FILTERS;
+    return JSON.parse(JSON.stringify(obj));
+  }
+
+  function detectChangeType(change) {
+    const base = String(change?.tipo || change?.type || change?.categoria || "").toLowerCase();
+    const detail = `${change?.situacao_anterior || ""} ${change?.situacao_nova || ""} ${change?.descricao || ""}`.toLowerCase();
+
+    if (base.includes("deslig") || detail.includes("deslig") || detail.includes("demit")) return "desligamento";
+    if (base.includes("admiss") || detail.includes("admiss")) return "admissao";
+    if (base.includes("afast") || detail.includes("afast")) return "afastamento";
+    return "outro";
+  }
+
+  function getChangeLabel(type) {
+    return {
+      desligamento: "Desligamento",
+      admissao: "Admissão",
+      afastamento: "Afastamento",
+      outro: "Alteração"
+    }[type] || "Alteração";
+  }
+
+  function getChangeTitle(change) {
+    return change?.nome || change?.colaborador || change?.matricula || change?.id || "Alteração detectada";
+  }
+
+  function getChangeDescription(change) {
+    const parts = [];
+    if (change?.situacao_anterior || change?.situacao_nova) {
+      parts.push(`${change?.situacao_anterior || "--"} → ${change?.situacao_nova || "--"}`);
     }
+    if (change?.descricao) parts.push(change.descricao);
+    if (change?.detalhe) parts.push(change.detalhe);
+    if (change?.matricula) parts.push(`Matrícula: ${change.matricula}`);
+    return parts.join(" • ") || "Mudança identificada no monitoramento da planilha.";
+  }
 
-    function setLoading(isLoading) {
-      document.body.classList.toggle("loading", isLoading);
-    }
+  const changeDetailsModal = document.getElementById("changeDetailsModal");
+  const closeChangeDetailsModal = document.getElementById("closeChangeDetailsModal");
+  const changeDetailsTitle = document.getElementById("changeDetailsTitle");
+  const changeDetailsSummary = document.getElementById("changeDetailsSummary");
+  const changeDetailsList = document.getElementById("changeDetailsList");
+  let groupedChangesCache = {};
 
-    function safeArray(v) {
-      return Array.isArray(v) ? v : [];
-    }
+  function openChangeGroupModal(typeKey) {
+    const items = groupedChangesCache[typeKey] || [];
+    const typeLabel = getChangeLabel(typeKey);
 
-    function escapeHtml(text) {
-      const div = document.createElement("div");
-      div.textContent = String(text ?? "");
-      return div.innerHTML;
-    }
+    changeDetailsTitle.textContent = `Detalhes de ${typeLabel}`;
+    changeDetailsSummary.textContent = items.length === 1
+      ? `1 ${typeLabel.toLowerCase()} detectado(a) no dia.`
+      : `${items.length} ${typeLabel.toLowerCase()}(s) detectado(s) no dia.`;
 
-    function normalizeText(v) {
-      return String(v ?? "").trim();
-    }
-
-    function updateStepIndicators() {
-      [1,2,3].forEach((n) => {
-        const el = document.getElementById(`stepIndicator${n}`);
-        el.classList.remove("active", "done");
-        if (n < wizardState.step) el.classList.add("done");
-        if (n === wizardState.step) el.classList.add("active");
-      });
-
-      document.getElementById("wizardStep1").classList.toggle("show", wizardState.step === 1);
-      document.getElementById("wizardStep2").classList.toggle("show", wizardState.step === 2);
-      document.getElementById("wizardStep3").classList.toggle("show", wizardState.step === 3);
-    }
-
-    function goToStep(step) {
-      wizardState.step = step;
-      updateStepIndicators();
-      clearStatus(wizardStatus);
-    }
-
-    function resetWizard(keepLoadedConfig = false) {
-      manualTabMode = false;
-      manualTabField.classList.add("hidden");
-      toggleManualTab.textContent = "Digitar a aba manualmente";
-
-      if (!keepLoadedConfig) {
-        wizardState.sheet_id = "";
-        wizardState.spreadsheet_name = "";
-        wizardState.tabs = [];
-        wizardState.tab_name = "";
-        wizardState.columns = [];
-        wizardState.selectedColumn = "";
-        wizardState.filters = {};
-      }
-
-      tabSelect.innerHTML = `<option value="">Selecione uma aba</option>`;
-      tabInputManual.value = "";
-      columnsBox.innerHTML = "";
-      columnValuesBox.innerHTML = "";
-      selectedColumnLabel.textContent = "Nenhuma coluna selecionada.";
-      sheetPreviewText.textContent = "Nenhuma planilha validada ainda.";
-      columnsEmpty.classList.add("hidden");
-      valuesEmpty.classList.remove("hidden");
-
-      renderSelectedFilters();
-      updateStepIndicators();
-      clearStatus(wizardStatus);
-    }
-
-    function openModal() {
-      configModal.classList.add("show");
-      resetWizard(true);
-
-      if (wizardState.sheet_id) {
-        sheetInput.value = wizardState.sheet_id;
-      }
-      if (wizardState.tabs.length > 0) {
-        populateTabs(wizardState.tabs, wizardState.tab_name);
-      }
-      if (wizardState.columns.length > 0) {
-        renderColumns();
-      }
-      renderSelectedFilters();
-      goToStep(1);
-    }
-
-    function closeModalFn() {
-      configModal.classList.remove("show");
-    }
-
-    function toggleManualTabMode(forceValue = null) {
-      manualTabMode = forceValue !== null ? forceValue : !manualTabMode;
-      manualTabField.classList.toggle("hidden", !manualTabMode);
-      toggleManualTab.textContent = manualTabMode
-        ? "Usar lista de abas encontradas"
-        : "Digitar a aba manualmente";
-    }
-
-    function getChosenTabName() {
-      if (manualTabMode) {
-        return normalizeText(tabInputManual.value);
-      }
-      return normalizeText(tabSelect.value);
-    }
-
-    function populateTabs(tabs, selected = "") {
-      tabSelect.innerHTML = `<option value="">Selecione uma aba</option>`;
-      safeArray(tabs).forEach(tab => {
-        const opt = document.createElement("option");
-        opt.value = tab;
-        opt.textContent = tab;
-        if (tab === selected) opt.selected = true;
-        tabSelect.appendChild(opt);
-      });
-    }
-
-    function renderActiveFilters(filters = {}) {
-      const entries = Object.entries(filters || {}).filter(([_, vals]) => Array.isArray(vals) && vals.length > 0);
-
-      if (!entries.length) {
-        activeFilters.innerHTML = `<div class="empty-box">Nenhum filtro salvo.</div>`;
-        return;
-      }
-
-      activeFilters.innerHTML = entries.map(([col, vals]) => `
-        <div class="filter-pill">
-          <strong>${escapeHtml(col)}:</strong> ${escapeHtml(vals.join(", "))}
+    if (!items.length) {
+      changeDetailsList.innerHTML = `<div class="changes-empty">Nenhuma alteração encontrada.</div>`;
+    } else {
+      changeDetailsList.innerHTML = items.map(item => `
+        <div class="change-subitem">
+          <div class="change-subitem-title">${escapeHtml(getChangeTitle(item))}</div>
+          <div class="change-subitem-desc">${escapeHtml(getChangeDescription(item))}</div>
         </div>
       `).join("");
     }
 
-    function renderSelectedFilters() {
-      const entries = Object.entries(wizardState.filters || {}).filter(([_, vals]) => Array.isArray(vals) && vals.length > 0);
+    changeDetailsModal.classList.add("show");
+  }
 
-      if (!entries.length) {
-        selectedFiltersSummary.innerHTML = `<div class="empty-box">Nenhum filtro montado ainda.</div>`;
-        return;
-      }
+  function closeChangeDetailsModalFn() {
+    changeDetailsModal.classList.remove("show");
+  }
 
-      selectedFiltersSummary.innerHTML = entries.flatMap(([col, vals]) =>
-        vals.map(val => `
-          <div class="filter-pill">
-            <span><strong>${escapeHtml(col)}:</strong> ${escapeHtml(val)}</span>
-            <button type="button" onclick="removeFilterValue('${encodeURIComponent(col)}', '${encodeURIComponent(val)}')">×</button>
-          </div>
-        `)
-      ).join("");
+  window.openChangeGroupModal = openChangeGroupModal;
+
+  function renderChangesList(alteracoes = []) {
+    const items = Array.isArray(alteracoes) ? alteracoes : [];
+
+    if (!items.length) {
+      changesList.innerHTML = `<div class="changes-empty">Nenhuma alteração detectada até o momento.</div>`;
+      changesPanelSub.textContent = "Sem novidades no momento.";
+      return;
     }
 
-    function removeFilterValue(colEncoded, valEncoded) {
-      const col = decodeURIComponent(colEncoded);
-      const val = decodeURIComponent(valEncoded);
+    const groups = {};
+    items.forEach(change => {
+      const type = detectChangeType(change);
+      if (!groups[type]) groups[type] = [];
+      groups[type].push(change);
+    });
 
-      if (!wizardState.filters[col]) return;
+    groupedChangesCache = groups;
 
-      wizardState.filters[col] = wizardState.filters[col].filter(item => item !== val);
+    const order = ["desligamento", "afastamento", "admissao", "outro"];
+    const orderedEntries = order
+      .filter(type => groups[type]?.length)
+      .map(type => [type, groups[type]]);
 
-      if (!wizardState.filters[col].length) {
-        delete wizardState.filters[col];
-      }
+    changesPanelSub.textContent = `${items.length} alteração(ões) encontrada(s) no monitoramento.`;
 
-      renderSelectedFilters();
-      renderColumnValuesCurrentState();
-    }
+    changesList.innerHTML = orderedEntries.map(([type, groupItems]) => {
+      const total = groupItems.length;
+      const firstItem = groupItems[0];
+      const typeLabel = getChangeLabel(type);
+      const resumo = total === 1
+        ? `1 ${typeLabel.toLowerCase()} detectado(a) no dia.`
+        : `${total} ${typeLabel.toLowerCase()}(s) detectado(s) no dia.`;
 
-    window.removeFilterValue = removeFilterValue;
-
-    function renderHCMonitorState(totalConfirmado, alteracoes = []) {
-      monitorState.confirmedTotal = Number.isFinite(Number(totalConfirmado)) ? Number(totalConfirmado) : 0;
-
-      const lista = Array.isArray(alteracoes) ? alteracoes : [];
-      const deltaPositivo = lista
-        .filter(item => Number(item.impacto || 0) > 0)
-        .reduce((acc, item) => acc + Number(item.impacto || 0), 0);
-      const deltaNegativo = Math.abs(lista
-        .filter(item => Number(item.impacto || 0) < 0)
-        .reduce((acc, item) => acc + Number(item.impacto || 0), 0));
-
-      monitorState.deltaPositivo = deltaPositivo;
-      monitorState.deltaNegativo = deltaNegativo;
-
-      hcTotal.textContent = monitorState.confirmedTotal;
-
-      if (!deltaPositivo) {
-        hcDeltaPositive.classList.add("hidden");
-        hcDeltaPositive.textContent = "";
-      } else {
-        hcDeltaPositive.classList.remove("hidden");
-        hcDeltaPositive.textContent = `+${deltaPositivo}`;
-      }
-
-      if (!deltaNegativo) {
-        hcDeltaNegative.classList.add("hidden");
-        hcDeltaNegative.textContent = "";
-      } else {
-        hcDeltaNegative.classList.remove("hidden");
-        hcDeltaNegative.textContent = `-${deltaNegativo}`;
-      }
-
-      if (!deltaPositivo && !deltaNegativo) {
-        hcPreview.classList.add("hidden");
-        hcPreview.textContent = "";
-        return;
-      }
-
-      hcPreview.classList.remove("hidden");
-      hcPreview.textContent = `Após confirmação: ${monitorState.confirmedTotal + deltaPositivo - deltaNegativo}`;
-    }
-
-
-    function formatCategoriaClasse(categoria) {
-      return normalizeText(categoria || "situacao_alterada").toLowerCase().replace(/\s+/g, "_");
-    }
-
-    function openDetailsModal(item) {
-      const categoriaLabel = item.categoria_label || "Mudança";
-      detailsHeader.innerHTML = `
-        <span class="category-badge ${escapeHtml(formatCategoriaClasse(item.categoria))}">${escapeHtml(categoriaLabel)}</span>
-        <div style="margin-top:8px;"><strong>${escapeHtml(item.nome || item.matricula || "Alteração")}</strong> • Matrícula: ${escapeHtml(item.matricula || "--")} • Detectado em: ${escapeHtml(item.detectado_em || "--")}</div>
-        <div style="margin-top:8px; color:#64748b;">${escapeHtml(item.mensagem || "Alteração detectada.")}</div>
-      `;
-
-      const detalhes = item.detalhes || {};
-      const antes = detalhes.antes || {};
-      const depois = detalhes.depois || {};
-
-      function renderDetailCard(title, obj) {
-        const entries = Object.entries(obj || {}).filter(([_, value]) => normalizeText(value));
-        if (!entries.length) {
-          return `<div class="detail-card"><h4>${escapeHtml(title)}</h4><div class="empty-box">Sem dados para exibir.</div></div>`;
-        }
-        return `
-          <div class="detail-card">
-            <h4>${escapeHtml(title)}</h4>
-            <div class="detail-list">
-              ${entries.map(([label, value]) => `
-                <div class="detail-item">
-                  <span>${escapeHtml(label)}</span>
-                  <span>${escapeHtml(value)}</span>
-                </div>
-              `).join("")}
+      return `
+        <div class="change-group-card">
+          <div class="change-group-head">
+            <div class="change-group-left">
+              <div class="change-badge ${type}">${escapeHtml(typeLabel)}</div>
+              <div class="change-group-meta">
+                <div class="change-group-title">${escapeHtml(resumo)}</div>
+                <div class="change-group-desc">${escapeHtml(getChangeDescription(firstItem))}</div>
+              </div>
             </div>
+            <button
+              class="change-group-btn"
+              type="button"
+              onclick="openChangeGroupModal('${type}')"
+            >
+              Ver detalhes
+            </button>
           </div>
-        `;
-      }
-
-      detailsBody.innerHTML = `
-        <div class="detail-grid">
-          ${renderDetailCard("Antes", antes)}
-          ${renderDetailCard("Depois", depois)}
         </div>
       `;
+    }).join("");
+  }
 
-      detailsModal.classList.add("show");
+  function toggleManualTabMode(forceValue = null) {
+    manualTabMode = forceValue !== null ? forceValue : !manualTabMode;
+    manualTabField.classList.toggle("hidden", !manualTabMode);
+    toggleManualTab.textContent = manualTabMode
+      ? "Usar lista de abas encontradas"
+      : "Digitar a aba manualmente";
+  }
+
+  function getChosenTabName() {
+    return manualTabMode
+      ? normalizeText(tabInputManual.value)
+      : normalizeText(tabSelect.value);
+  }
+
+  function populateTabs(tabs, selected = "") {
+    tabSelect.innerHTML = `<option value="">Selecione uma aba</option>`;
+    safeArray(tabs).forEach(tab => {
+      const opt = document.createElement("option");
+      opt.value = tab;
+      opt.textContent = tab;
+      if (tab === selected) opt.selected = true;
+      tabSelect.appendChild(opt);
+    });
+  }
+
+  function getFilterProfiles() {
+    try {
+      const raw = localStorage.getItem(FILTER_PROFILE_STORAGE_KEY);
+      const parsed = raw ? JSON.parse(raw) : [];
+      return Array.isArray(parsed) ? parsed.slice(0, MAX_FILTER_PROFILES) : [];
+    } catch (err) {
+      return [];
+    }
+  }
+
+  function saveFilterProfiles(profiles) {
+    localStorage.setItem(FILTER_PROFILE_STORAGE_KEY, JSON.stringify((profiles || []).slice(0, MAX_FILTER_PROFILES)));
+  }
+
+
+  function getStoredActiveProfileSlot() {
+    try {
+      const raw = localStorage.getItem(FILTER_ACTIVE_SLOT_STORAGE_KEY);
+      const idx = Number(raw);
+      return Number.isInteger(idx) && idx >= 0 && idx < MAX_FILTER_PROFILES ? idx : 0;
+    } catch (err) {
+      return 0;
+    }
+  }
+
+  function setStoredActiveProfileSlot(slotIndex) {
+    currentProfileSlot = Math.max(0, Math.min(MAX_FILTER_PROFILES - 1, Number(slotIndex) || 0));
+    localStorage.setItem(FILTER_ACTIVE_SLOT_STORAGE_KEY, String(currentProfileSlot));
+  }
+
+  function getNextUsableProfileSlot(preferred = null) {
+    const profiles = getFilterProfiles();
+    if (preferred !== null && preferred >= 0 && preferred < MAX_FILTER_PROFILES) {
+      if (profiles[preferred]) return preferred;
+    }
+    const firstExisting = profiles.findIndex(Boolean);
+    if (firstExisting >= 0) return firstExisting;
+    const firstEmpty = profiles.findIndex(item => !item);
+    return firstEmpty >= 0 ? firstEmpty : 0;
+  }
+
+  function getReadableFilterValue(col, vals) {
+    return safeArray(vals).join(", ");
+  }
+
+  function calculateFilterPages() {
+    const items = Array.from(activeFiltersTrack.children).filter(item => !item.classList.contains("compact-filter-empty"));
+    if (!items.length) {
+      filterPageGroups = [];
+      activeFilterPage = 0;
+      activeFiltersTrack.style.setProperty("--filter-cols", "1");
+      updateFilterCarousel();
+      return;
     }
 
-    function closeDetailsModalFn() {
-      detailsModal.classList.remove("show");
+    const total = items.length;
+    if (total <= FILTERS_PER_VIEW) {
+      filterPageGroups = [items.map((_, idx) => idx)];
+      activeFilterPage = 0;
+      activeFiltersTrack.style.setProperty("--filter-cols", String(total));
+      updateFilterCarousel();
+      return;
     }
 
-    function fillData(dados) {
-      if (monitorState.confirmedTotal === null) {
-        renderHCMonitorState(dados.total_trabalhando ?? 0, 0);
+    filterPageGroups = [];
+    for (let start = 0; start <= total - FILTERS_PER_VIEW; start++) {
+      filterPageGroups.push([start, start + 1, start + 2]);
+    }
+
+    if (activeFilterPage > filterPageGroups.length - 1) {
+      activeFilterPage = filterPageGroups.length - 1;
+    }
+    if (activeFilterPage < 0) activeFilterPage = 0;
+
+    activeFiltersTrack.style.setProperty("--filter-cols", String(FILTERS_PER_VIEW));
+    updateFilterCarousel();
+  }
+
+  function updateFilterCarousel() {
+    const allItems = Array.from(activeFiltersTrack.children);
+    const filterItems = allItems.filter(item => !item.classList.contains("compact-filter-empty"));
+    const group = filterPageGroups[activeFilterPage] || [];
+    const hasMultiplePages = filterPageGroups.length > 1;
+
+    allItems.forEach(item => item.classList.add("hidden"));
+
+    if (!filterItems.length) {
+      const empty = allItems[0];
+      if (empty) empty.classList.remove("hidden");
+      filtersPrev.classList.add("hidden");
+      filtersNext.classList.add("hidden");
+      activeFiltersTrack.style.setProperty("--filter-cols", "1");
+      return;
+    }
+
+    filterItems.forEach((item, idx) => {
+      item.classList.toggle("hidden", !group.includes(idx));
+    });
+
+    const visibleCount = hasMultiplePages ? FILTERS_PER_VIEW : filterItems.length;
+    activeFiltersTrack.style.setProperty("--filter-cols", String(Math.max(1, visibleCount)));
+
+    filtersPrev.classList.toggle("hidden", !hasMultiplePages || activeFilterPage === 0);
+    filtersNext.classList.toggle("hidden", !hasMultiplePages || activeFilterPage >= filterPageGroups.length - 1);
+  }
+
+  function renderProfileSlots() {
+    const profiles = getFilterProfiles();
+    filterProfilesStrip.innerHTML = "";
+
+    for (let i = 0; i < MAX_FILTER_PROFILES; i++) {
+      const profile = profiles[i];
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "profile-slot";
+
+      if (profile) {
+        if (i === currentProfileSlot) btn.classList.add("active");
+        btn.innerHTML = `
+          <span>🗂</span>
+          <span class="profile-slot-text">
+            <span>${escapeHtml(profile.name || `Perfil ${i + 1}`)}</span>
+          </span>
+        `;
+        btn.addEventListener("click", async () => {
+          setStoredActiveProfileSlot(i);
+          pendingProfileSlot = i;
+          filterProfileName.value = profile.name || `Perfil ${i + 1}`;
+          wizardState.filters = JSON.parse(JSON.stringify(profile.filters || {}));
+          renderProfileSlots();
+          renderSelectedFilters();
+          renderActiveFilters(wizardState.filters);
+          await salvarSomenteFiltros(true, true);
+        });
+      } else {
+        btn.classList.add("empty");
+        btn.innerHTML = `<span style="font-size:18px;">＋</span><span>Novo perfil</span>`;
+        btn.addEventListener("click", async () => {
+          setStoredActiveProfileSlot(i);
+          pendingProfileSlot = i;
+          filterProfileName.value = `Perfil ${i + 1}`;
+          wizardState.filters = {};
+          await openFilterModal();
+        });
       }
 
-      hcSub.textContent =
-        `Planilha: ${dados.spreadsheet_name || "--"} • Aba: ${dados.tab_name || "--"}`;
+      filterProfilesStrip.appendChild(btn);
+    }
+  }
 
-      infoSpreadsheet.textContent = dados.spreadsheet_name || "--";
-      infoSheetId.textContent = dados.sheet_id || "--";
-      infoTab.textContent = dados.tab_name || "--";
-      infoRows.textContent = dados.total_linhas ?? "--";
-      infoFilteredRows.textContent = dados.total_filtrado ?? dados.total_linhas ?? "--";
+  function renderActiveFilters(filters = {}) {
+    const effective = getEffectiveFilters(filters);
+    const entries = Object.entries(effective).filter(([_, vals]) => Array.isArray(vals) && vals.length > 0);
 
-      renderActiveFilters(dados.filters || {});
+    if (activeFiltersTitle) {
+      activeFiltersTitle.textContent = `${entries.length} ${entries.length === 1 ? "filtro ativo" : "filtros ativos"}`;
     }
 
-    async function carregarConfig() {
-      const resp = await fetch("/planejamento/hc-config");
+    if (!entries.length) {
+      activeFiltersTrack.innerHTML = `<div class="compact-filter-empty">Nenhum filtro ativo.</div>`;
+      activeFilterPage = 0;
+      filterPageGroups = [];
+      calculateFilterPages();
+      return;
+    }
+
+    activeFiltersTrack.innerHTML = entries.map(([col, vals]) => `
+      <div class="compact-filter-pill" title="${escapeHtml(col + ': ' + vals.join(', '))}">
+        <span>${escapeHtml(getReadableFilterValue(col, vals))}</span>
+      </div>
+    `).join("");
+
+    activeFilterPage = 0;
+    filterPageGroups = [];
+    requestAnimationFrame(calculateFilterPages);
+  }
+
+  function renderSelectedFilters() {
+    const entries = Object.entries(wizardState.filters || {}).filter(([_, vals]) => Array.isArray(vals) && vals.length > 0);
+
+    if (!entries.length) {
+      selectedFiltersSummary.innerHTML = `<div class="empty-box">Nenhum filtro montado ainda.</div>`;
+      return;
+    }
+
+    selectedFiltersSummary.innerHTML = entries.flatMap(([col, vals]) =>
+      vals.map(val => `
+        <div class="filter-pill">
+          <span><strong>${escapeHtml(col)}:</strong> ${escapeHtml(val)}</span>
+          <button type="button" onclick="removeFilterValue('${encodeURIComponent(col)}', '${encodeURIComponent(val)}')">×</button>
+        </div>
+      `)
+    ).join("");
+  }
+
+  function removeFilterValue(colEncoded, valEncoded) {
+    const col = decodeURIComponent(colEncoded);
+    const val = decodeURIComponent(valEncoded);
+
+    if (!wizardState.filters[col]) return;
+
+    wizardState.filters[col] = wizardState.filters[col].filter(item => item !== val);
+    if (!wizardState.filters[col].length) delete wizardState.filters[col];
+
+    renderSelectedFilters();
+    renderColumnValuesCurrentState();
+  }
+
+  window.removeFilterValue = removeFilterValue;
+
+  function getTodayKey() {
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, "0");
+    const d = String(now.getDate()).padStart(2, "0");
+    return `${y}-${m}-${d}`;
+  }
+
+  function getStoredDailyChanges() {
+    try {
+      const raw = localStorage.getItem(DAILY_CHANGES_STORAGE_KEY);
+      const parsed = raw ? JSON.parse(raw) : null;
+      if (!parsed || parsed.day !== getTodayKey() || !Array.isArray(parsed.items)) {
+        return [];
+      }
+      return parsed.items;
+    } catch (err) {
+      return [];
+    }
+  }
+
+  function saveStoredDailyChanges(items) {
+    localStorage.setItem(DAILY_CHANGES_STORAGE_KEY, JSON.stringify({
+      day: getTodayKey(),
+      items: Array.isArray(items) ? items : []
+    }));
+  }
+
+  function makeChangeSignature(change) {
+    return [
+      String(change?.tipo || change?.type || change?.categoria || "").toLowerCase(),
+      String(change?.matricula || "").trim(),
+      String(change?.situacao_anterior || "").trim(),
+      String(change?.situacao_nova || "").trim(),
+      String(change?.descricao || "").trim()
+    ].join("|");
+  }
+
+  function mergeDailyChanges(newItems = []) {
+    const current = getStoredDailyChanges();
+    const map = new Map(current.map(item => [makeChangeSignature(item), item]));
+    (Array.isArray(newItems) ? newItems : []).forEach(item => {
+      map.set(makeChangeSignature(item), item);
+    });
+    const merged = Array.from(map.values());
+    saveStoredDailyChanges(merged);
+    return merged;
+  }
+
+  function computeProjectedTotal(baseTotal, alteracoes = []) {
+    let total = Number(baseTotal);
+    if (!Number.isFinite(total)) return null;
+
+    (Array.isArray(alteracoes) ? alteracoes : []).forEach(change => {
+      const type = detectChangeType(change);
+      const from = String(change?.situacao_anterior || "").trim().toUpperCase();
+      const to = String(change?.situacao_nova || "").trim().toUpperCase();
+
+      if (type === "admissao") {
+        total += 1;
+        return;
+      }
+
+      if (type === "desligamento") {
+        if (from === "TRABALHANDO" || !from) total -= 1;
+        return;
+      }
+
+      if (type === "afastamento") {
+        if (from === "TRABALHANDO" && to.includes("AFAST")) {
+          total -= 1;
+          return;
+        }
+        if (from.includes("AFAST") && to === "TRABALHANDO") {
+          total += 1;
+          return;
+        }
+      }
+    });
+
+    return total;
+  }
+
+  function renderProjectedTotal(baseTotal, alteracoes = []) {
+    if (!hcProjectedTotal) return;
+    const projected = computeProjectedTotal(baseTotal, alteracoes);
+    const base = Number(baseTotal);
+
+    if (!Number.isFinite(projected) || !Number.isFinite(base) || projected === base) {
+      hcProjectedTotal.textContent = "";
+      hcProjectedTotal.classList.remove("show");
+      return;
+    }
+
+    hcProjectedTotal.textContent = `→ ${projected}`;
+    hcProjectedTotal.classList.add("show");
+  }
+
+  async function excluirPerfilAtual() {
+    try {
+      const profiles = getFilterProfiles();
+      profiles[currentProfileSlot] = null;
+      saveFilterProfiles(profiles);
+
+      const nextSlot = getNextUsableProfileSlot(currentProfileSlot);
+      setStoredActiveProfileSlot(nextSlot);
+      pendingProfileSlot = nextSlot;
+
+      const nextProfile = getFilterProfiles()[nextSlot];
+      if (nextProfile) {
+        filterProfileName.value = nextProfile.name || `Perfil ${nextSlot + 1}`;
+        wizardState.filters = JSON.parse(JSON.stringify(nextProfile.filters || {}));
+        await salvarSomenteFiltros(true, true);
+      } else {
+        filterProfileName.value = `Perfil ${nextSlot + 1}`;
+        wizardState.filters = {};
+        renderSelectedFilters();
+        renderActiveFilters(wizardState.filters);
+        renderProfileSlots();
+        closeFilterModalFn();
+        showStatus(mainStatus, "Perfil excluído com sucesso.", "success");
+      }
+    } catch (err) {
+      showStatus(filterStatus, err.message || "Não foi possível excluir o perfil.", "error");
+    }
+  }
+
+  function fillData(dados) {
+
+    const totalFiltrado = dados.total_filtrado ?? "--";
+    hcTotal.textContent = totalFiltrado;
+    hcSub.textContent = `Planilha: ${dados.spreadsheet_name || "--"} • Aba: ${dados.tab_name || "--"}`;
+    renderProjectedTotal(totalFiltrado, getStoredDailyChanges());
+    renderActiveFilters(dados.filters || {});
+    renderProfileSlots();
+  }
+
+  async function carregarConfig(preserveLocalProfile = false) {
+    const resp = await fetch("/planejamento/hc-config");
+    const data = await resp.json();
+
+    if (!data.ok) {
+      throw new Error(data.msg || "Erro ao carregar configuração.");
+    }
+
+    const cfg = data.config || {};
+    wizardState.sheet_id = cfg.sheet_id || "";
+    wizardState.tab_name = cfg.tab_name || "";
+    wizardState.filters = preserveLocalProfile ? JSON.parse(JSON.stringify(wizardState.filters || {})) : getEffectiveFilters(cfg.filters || {});
+    wizardState.tabs = [];
+    wizardState.columns = [];
+    wizardState.selectedColumn = "";
+
+    sheetInput.value = wizardState.sheet_id || "";
+    tabInputManual.value = wizardState.tab_name || "";
+  }
+
+  async function carregarTotal() {
+    setHCLoading(true);
+    clearStatus(mainStatus);
+
+    try {
+      const resp = await fetch("/planejamento/hc-total");
       const data = await resp.json();
 
       if (!data.ok) {
-        throw new Error(data.msg || "Erro ao carregar configuração.");
+        throw new Error(data.detail || data.msg || "Erro ao buscar total.");
       }
 
-      const cfg = data.config || {};
-
-      wizardState.sheet_id = cfg.sheet_id || "";
-      wizardState.tab_name = cfg.tab_name || "";
-      wizardState.filters = cfg.filters || {};
-
-      sheetInput.value = wizardState.sheet_id || "";
-      tabInputManual.value = wizardState.tab_name || "";
+      fillData(data.dados || {});
+      showStatus(mainStatus, "Painel atualizado com sucesso.", "success");
+    } catch (err) {
+      hcTotal.textContent = "--";
+      hcSub.textContent = "Não foi possível carregar os dados.";
+      showStatus(mainStatus, err.message, "error");
+    } finally {
+      setHCLoading(false);
     }
+  }
 
-    async function carregarTotal() {
-      setLoading(true);
-      clearStatus(mainStatus);
+  async function buscarAbasPlanilha() {
+    setModalLoading(configModal, true);
+    clearStatus(configStatus);
 
-      try {
-        const resp = await fetch("/planejamento/hc-total");
-        const data = await resp.json();
-
-        if (!data.ok) {
-          throw new Error(data.detail || data.msg || "Erro ao buscar total.");
-        }
-
-        fillData(data.dados || {});
-        showStatus(mainStatus, "Total carregado com sucesso.", "success");
-      } catch (err) {
-        hcTotal.textContent = "--";
-        hcSub.textContent = "Não foi possível carregar os dados.";
-        showStatus(mainStatus, err.message, "error");
-      } finally {
-        setLoading(false);
+    try {
+      const rawSheet = normalizeText(sheetInput.value);
+      if (!rawSheet) {
+        throw new Error("Informe o link ou ID da planilha.");
       }
-    }
 
-    async function buscarAbasPlanilha() {
-      setLoading(true);
-      clearStatus(wizardStatus);
+      const resp = await fetch("/planejamento/hc-tabs", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sheet_id: rawSheet })
+      });
 
-      try {
-        const rawSheet = normalizeText(sheetInput.value);
-        if (!rawSheet) {
-          throw new Error("Informe o link ou ID da planilha.");
-        }
+      const data = await resp.json();
 
-        const resp = await fetch("/planejamento/hc-tabs", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ sheet_id: rawSheet })
-        });
-
-        const data = await resp.json();
-
-        if (!data.ok) {
-          throw new Error(data.detail || data.msg || "Não foi possível buscar as abas.");
-        }
-
-        wizardState.sheet_id = data.sheet_id || rawSheet;
-        wizardState.spreadsheet_name = data.spreadsheet_name || "";
-        wizardState.tabs = safeArray(data.tabs);
-
-        populateTabs(wizardState.tabs, wizardState.tab_name);
-        sheetPreviewText.textContent = `Planilha encontrada: ${wizardState.spreadsheet_name || wizardState.sheet_id}`;
-
-        if (wizardState.tab_name && wizardState.tabs.includes(wizardState.tab_name)) {
-          tabSelect.value = wizardState.tab_name;
-        }
-
-        showStatus(
-          wizardStatus,
-          wizardState.tabs.length
-            ? "Planilha encontrada. Agora escolha a aba."
-            : "Planilha encontrada, mas nenhuma aba foi listada. Digite o nome manualmente.",
-          wizardState.tabs.length ? "success" : "warning"
-        );
-
-        if (!wizardState.tabs.length) {
-          toggleManualTabMode(true);
-        } else {
-          toggleManualTabMode(false);
-        }
-
-        goToStep(2);
-      } catch (err) {
-        wizardState.sheet_id = normalizeText(sheetInput.value);
-        wizardState.spreadsheet_name = "";
-        wizardState.tabs = [];
-        populateTabs([]);
-        sheetPreviewText.textContent = "Não foi possível listar as abas automaticamente. Você ainda pode digitar a aba manualmente.";
-        toggleManualTabMode(true);
-        showStatus(wizardStatus, err.message, "warning");
-        goToStep(2);
-      } finally {
-        setLoading(false);
+      if (!data.ok) {
+        throw new Error(data.detail || data.msg || "Não foi possível buscar as abas.");
       }
+
+      wizardState.sheet_id = data.sheet_id || rawSheet;
+      wizardState.spreadsheet_name = data.spreadsheet_name || "";
+      wizardState.tabs = safeArray(data.tabs);
+
+      populateTabs(wizardState.tabs, wizardState.tab_name);
+      sheetPreviewText.textContent = `Planilha encontrada: ${wizardState.spreadsheet_name || wizardState.sheet_id}`;
+
+      if (wizardState.tab_name && wizardState.tabs.includes(wizardState.tab_name)) {
+        tabSelect.value = wizardState.tab_name;
+      }
+
+      showStatus(
+        configStatus,
+        wizardState.tabs.length
+          ? "Planilha encontrada. Agora escolha a aba."
+          : "Planilha encontrada, mas nenhuma aba foi listada. Digite o nome manualmente.",
+        wizardState.tabs.length ? "success" : "warning"
+      );
+
+      toggleManualTabMode(!wizardState.tabs.length);
+    } catch (err) {
+      wizardState.sheet_id = normalizeText(sheetInput.value);
+      wizardState.spreadsheet_name = "";
+      wizardState.tabs = [];
+
+      populateTabs([]);
+      sheetPreviewText.textContent = "Não foi possível listar as abas automaticamente. Você ainda pode digitar a aba manualmente.";
+      toggleManualTabMode(true);
+      showStatus(configStatus, err.message, "warning");
+    } finally {
+      setModalLoading(configModal, false);
+    }
+  }
+
+  async function salvarConfiguracaoPainel() {
+    setModalLoading(configModal, true);
+    clearStatus(configStatus);
+
+    try {
+      const sheetId = wizardState.sheet_id || normalizeText(sheetInput.value);
+      const tabName = getChosenTabName();
+
+      if (!sheetId) {
+        throw new Error("Informe a planilha.");
+      }
+
+      if (!tabName) {
+        throw new Error("Informe ou selecione a aba.");
+      }
+
+      wizardState.sheet_id = sheetId;
+      wizardState.tab_name = tabName;
+
+      const slotToSave = pendingProfileSlot !== null ? pendingProfileSlot : currentProfileSlot;
+      const profileName = normalizeText(filterProfileName.value) || `Perfil ${slotToSave + 1}`;
+      const profiles = getFilterProfiles();
+      profiles[slotToSave] = {
+        name: profileName,
+        filters: JSON.parse(JSON.stringify(wizardState.filters || {}))
+      };
+      saveFilterProfiles(profiles);
+      setStoredActiveProfileSlot(slotToSave);
+      currentProfileSlot = slotToSave;
+      pendingProfileSlot = slotToSave;
+
+      const resp = await fetch("/planejamento/hc-config/save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sheet_id: wizardState.sheet_id,
+          tab_name: wizardState.tab_name,
+          filters: wizardState.filters
+        })
+      });
+
+      const data = await resp.json();
+
+      if (!data.ok) {
+        throw new Error(data.detail || data.msg || "Falha ao salvar configuração do painel.");
+      }
+
+      showStatus(configStatus, "Painel salvo com sucesso.", "success");
+      closeConfigModalFn();
+
+      await carregarConfig();
+      await carregarTotal();
+      await verificarAlteracoesHC(false);
+    } catch (err) {
+      showStatus(configStatus, err.message, "error");
+    } finally {
+      setModalLoading(configModal, false);
+    }
+  }
+
+  function renderColumns() {
+    columnsBox.innerHTML = "";
+    columnValuesBox.innerHTML = "";
+    selectedColumnLabel.textContent = "Nenhuma coluna selecionada.";
+    valuesEmpty.textContent = "Selecione uma coluna para ver os valores.";
+    valuesEmpty.classList.remove("hidden");
+
+    if (!wizardState.columns.length) {
+      columnsEmpty.classList.remove("hidden");
+      return;
     }
 
-    async function validarAbaECarregarColunas() {
-      setLoading(true);
-      clearStatus(wizardStatus);
+    columnsEmpty.classList.add("hidden");
 
-      try {
-        const sheetId = wizardState.sheet_id || normalizeText(sheetInput.value);
-        const tabName = getChosenTabName();
+    wizardState.columns.forEach(col => {
+      const chip = document.createElement("button");
+      chip.type = "button";
+      chip.className = "chip" + (wizardState.selectedColumn === col ? " active" : "");
+      chip.textContent = col;
 
-        if (!sheetId) {
-          throw new Error("Informe a planilha primeiro.");
-        }
-
-        if (!tabName) {
-          throw new Error("Informe ou selecione uma aba.");
-        }
-
-        wizardState.sheet_id = sheetId;
-        wizardState.tab_name = tabName;
-
-        const testResp = await fetch("/planejamento/hc-config/test", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            sheet_id: wizardState.sheet_id,
-            tab_name: wizardState.tab_name
-          })
-        });
-
-        const testData = await testResp.json();
-
-        if (!testData.ok) {
-          throw new Error(testData.detail || testData.msg || "Não foi possível conectar à aba.");
-        }
-
-        if (testData.resultado?.spreadsheet_name) {
-          wizardState.spreadsheet_name = testData.resultado.spreadsheet_name;
-        }
-
-        const colResp = await fetch("/planejamento/hc-columns", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            sheet_id: wizardState.sheet_id,
-            tab_name: wizardState.tab_name
-          })
-        });
-
-        const colData = await colResp.json();
-
-        if (!colData.ok) {
-          throw new Error(colData.detail || colData.msg || "Falha ao carregar colunas.");
-        }
-
-        wizardState.columns = safeArray(colData.columns);
-        wizardState.selectedColumn = "";
+      chip.addEventListener("click", () => {
+        wizardState.selectedColumn = col;
         renderColumns();
-        renderSelectedFilters();
+        carregarValoresColuna(col);
+      });
 
-        showStatus(
-          wizardStatus,
-          `Conexão realizada com sucesso. ${wizardState.columns.length} coluna(s) encontrada(s). Agora monte o filtro inicial.`,
-          "success"
-        );
+      columnsBox.appendChild(chip);
+    });
+  }
 
-        goToStep(3);
-      } catch (err) {
-        showStatus(wizardStatus, err.message, "error");
-      } finally {
-        setLoading(false);
-      }
-    }
+  async function carregarValoresColuna(coluna) {
+    setModalLoading(filterModal, true);
+    clearStatus(filterStatus);
 
-    function renderColumns() {
-      columnsBox.innerHTML = "";
+    try {
+      selectedColumnLabel.textContent = `Coluna selecionada: ${coluna}`;
       columnValuesBox.innerHTML = "";
-      selectedColumnLabel.textContent = "Nenhuma coluna selecionada.";
       valuesEmpty.classList.remove("hidden");
 
-      if (!wizardState.columns.length) {
-        columnsEmpty.classList.remove("hidden");
+      const resp = await fetch("/planejamento/hc-column-values", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sheet_id: wizardState.sheet_id,
+          tab_name: wizardState.tab_name,
+          column_name: coluna
+        })
+      });
+
+      const data = await resp.json();
+
+      if (!data.ok) {
+        throw new Error(data.detail || data.msg || "Erro ao carregar valores.");
+      }
+
+      const values = safeArray(data.values);
+
+      if (!values.length) {
+        valuesEmpty.textContent = "Nenhum valor encontrado para esta coluna.";
+        valuesEmpty.classList.remove("hidden");
         return;
       }
 
-      columnsEmpty.classList.add("hidden");
+      valuesEmpty.classList.add("hidden");
+      columnValuesBox.innerHTML = "";
 
-      wizardState.columns.forEach(col => {
+      values.forEach(val => {
+        const active = Array.isArray(wizardState.filters[coluna]) && wizardState.filters[coluna].includes(val);
+
         const chip = document.createElement("button");
         chip.type = "button";
-        chip.className = "chip" + (wizardState.selectedColumn === col ? " active" : "");
-        chip.textContent = col;
-        chip.addEventListener("click", () => {
-          wizardState.selectedColumn = col;
-          renderColumns();
-          carregarValoresColuna(col);
-        });
-        columnsBox.appendChild(chip);
+        chip.className = "chip" + (active ? " active" : "");
+        chip.textContent = val;
+
+        chip.addEventListener("click", () => toggleFilterValue(coluna, val));
+        columnValuesBox.appendChild(chip);
       });
+
+      renderColumnValuesCurrentState();
+    } catch (err) {
+      valuesEmpty.textContent = err.message;
+      valuesEmpty.classList.remove("hidden");
+    } finally {
+      setModalLoading(filterModal, false);
+    }
+  }
+
+  function renderColumnValuesCurrentState() {
+    if (!wizardState.selectedColumn) return;
+
+    const currentColumn = wizardState.selectedColumn;
+    const buttons = columnValuesBox.querySelectorAll(".chip");
+
+    buttons.forEach(btn => {
+      const val = btn.textContent;
+      const active = Array.isArray(wizardState.filters[currentColumn]) && wizardState.filters[currentColumn].includes(val);
+      btn.classList.toggle("active", active);
+    });
+
+    renderSelectedFilters();
+  }
+
+  function toggleFilterValue(coluna, valor) {
+    if (!wizardState.filters[coluna]) {
+      wizardState.filters[coluna] = [];
     }
 
-    async function carregarValoresColuna(coluna) {
-      setLoading(true);
-      clearStatus(wizardStatus);
+    const idx = wizardState.filters[coluna].indexOf(valor);
 
-      try {
-        selectedColumnLabel.textContent = `Coluna selecionada: ${coluna}`;
-        columnValuesBox.innerHTML = "";
-        valuesEmpty.classList.remove("hidden");
+    if (idx >= 0) {
+      wizardState.filters[coluna].splice(idx, 1);
+    } else {
+      wizardState.filters[coluna].push(valor);
+    }
 
-        const resp = await fetch("/planejamento/hc-column-values", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            sheet_id: wizardState.sheet_id,
-            tab_name: wizardState.tab_name,
-            column_name: coluna
-          })
-        });
+    if (!wizardState.filters[coluna].length) {
+      delete wizardState.filters[coluna];
+    }
 
-        const data = await resp.json();
+    renderColumnValuesCurrentState();
+    renderSelectedFilters();
+  }
 
-        if (!data.ok) {
-          throw new Error(data.detail || data.msg || "Erro ao carregar valores.");
-        }
+  function limparFiltros() {
+    wizardState.filters = {};
+    renderSelectedFilters();
+    renderColumnValuesCurrentState();
+  }
 
-        const values = safeArray(data.values);
+  async function openFilterModal() {
+    clearStatus(filterStatus);
+    if (pendingProfileSlot === null) {
+      pendingProfileSlot = currentProfileSlot;
+    }
+    if (!normalizeText(filterProfileName.value)) {
+      filterProfileName.value = `Perfil ${pendingProfileSlot + 1}`;
+    }
 
-        if (!values.length) {
-          valuesEmpty.textContent = "Nenhum valor encontrado para esta coluna.";
-          valuesEmpty.classList.remove("hidden");
-          return;
-        }
+    if (!wizardState.sheet_id || !wizardState.tab_name) {
+      filterModal.classList.add("show");
+      showStatus(filterStatus, "Primeiro configure a planilha e a aba do painel.", "warning");
+      return;
+    }
 
-        valuesEmpty.classList.add("hidden");
-        columnValuesBox.innerHTML = "";
+    filterModal.classList.add("show");
 
-        values.forEach(val => {
-          const active = Array.isArray(wizardState.filters[coluna]) && wizardState.filters[coluna].includes(val);
+    try {
+      setModalLoading(filterModal, true);
 
-          const chip = document.createElement("button");
-          chip.type = "button";
-          chip.className = "chip " + (active ? "active" : "soft-active");
-          chip.textContent = val;
+      const colResp = await fetch("/planejamento/hc-columns", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sheet_id: wizardState.sheet_id,
+          tab_name: wizardState.tab_name
+        })
+      });
 
-          chip.addEventListener("click", () => {
-            toggleFilterValue(coluna, val);
-          });
+      const colData = await colResp.json();
 
-          if (!active) {
-            chip.classList.remove("soft-active");
-          }
-
-          columnValuesBox.appendChild(chip);
-        });
-
-        renderColumnValuesCurrentState();
-      } catch (err) {
-        valuesEmpty.textContent = err.message;
-        valuesEmpty.classList.remove("hidden");
-      } finally {
-        setLoading(false);
+      if (!colData.ok) {
+        throw new Error(colData.detail || colData.msg || "Falha ao carregar colunas.");
       }
-    }
 
-    function renderColumnValuesCurrentState() {
-      if (!wizardState.selectedColumn) return;
-
-      const currentColumn = wizardState.selectedColumn;
-      const buttons = columnValuesBox.querySelectorAll(".chip");
-
-      buttons.forEach(btn => {
-        const val = btn.textContent;
-        const active = Array.isArray(wizardState.filters[currentColumn]) && wizardState.filters[currentColumn].includes(val);
-        btn.classList.toggle("active", active);
-      });
-
+      wizardState.columns = Array.isArray(colData.columns) ? colData.columns : [];
+      wizardState.selectedColumn = "";
+      if (pendingProfileSlot === null) {
+        pendingProfileSlot = currentProfileSlot;
+      }
+      if (!normalizeText(filterProfileName.value)) {
+        filterProfileName.value = `Perfil ${pendingProfileSlot + 1}`;
+      }
+      renderColumns();
       renderSelectedFilters();
+    } catch (err) {
+      showStatus(filterStatus, err.message, "error");
+    } finally {
+      setModalLoading(filterModal, false);
     }
+  }
 
-    function toggleFilterValue(coluna, valor) {
-      if (!wizardState.filters[coluna]) {
-        wizardState.filters[coluna] = [];
+  async function salvarSomenteFiltros(skipClose = false, preservePage = false) {
+    setModalLoading(filterModal, true);
+    clearStatus(filterStatus);
+
+    try {
+      if (!wizardState.sheet_id) {
+        throw new Error("Planilha não definida.");
       }
 
-      const idx = wizardState.filters[coluna].indexOf(valor);
+      if (!wizardState.tab_name) {
+        throw new Error("Aba não definida.");
+      }
 
-      if (idx >= 0) {
-        wizardState.filters[coluna].splice(idx, 1);
+      const slotToSave = pendingProfileSlot !== null ? pendingProfileSlot : currentProfileSlot;
+      const profileName = normalizeText(filterProfileName.value) || `Perfil ${slotToSave + 1}`;
+      const profiles = getFilterProfiles();
+      profiles[slotToSave] = {
+        name: profileName,
+        filters: JSON.parse(JSON.stringify(wizardState.filters || {}))
+      };
+      saveFilterProfiles(profiles);
+      setStoredActiveProfileSlot(slotToSave);
+      currentProfileSlot = slotToSave;
+      pendingProfileSlot = slotToSave;
+
+      const resp = await fetch("/planejamento/hc-config/save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sheet_id: wizardState.sheet_id,
+          tab_name: wizardState.tab_name,
+          filters: wizardState.filters
+        })
+      });
+
+      const data = await resp.json();
+
+      if (!data.ok) {
+        throw new Error(data.detail || data.msg || "Falha ao salvar filtros.");
+      }
+
+      renderActiveFilters(wizardState.filters);
+      renderProfileSlots();
+      if (!skipClose) {
+        closeFilterModalFn();
+      }
+
+      await carregarConfig(preservePage);
+      await carregarTotal();
+      await verificarAlteracoesHC(false);
+    } catch (err) {
+      showStatus(filterStatus, err.message, "error");
+    } finally {
+      setModalLoading(filterModal, false);
+    }
+  }
+
+  async function verificarAlteracoesHC(showLoader = false) {
+    try {
+      if (showLoader) {
+        setHCLoading(true);
+      }
+
+      const resp = await fetch("/planejamento/hc-monitor", {
+        method: "GET",
+        headers: { "Accept": "application/json" }
+      });
+
+      const data = await resp.json();
+
+      if (!data.ok) {
+        throw new Error(data.detail || data.msg || "Erro no monitoramento.");
+      }
+
+      const alteracoesNovas = data.monitor?.ultimas_alteracoes || [];
+      const alteracoesDoDia = mergeDailyChanges(alteracoesNovas);
+      renderChangesList(alteracoesDoDia);
+      renderProjectedTotal(hcTotal.textContent, alteracoesDoDia);
+
+      if (alteracoesNovas.length > 0) {
+        showStatus(mainStatus, `${alteracoesNovas.length} alteração(ões) detectada(s) no monitoramento.`, "warning");
+      }
+    } catch (err) {
+      console.error("Erro ao verificar alterações HC:", err);
+      const alteracoesDoDia = getStoredDailyChanges();
+      renderChangesList(alteracoesDoDia);
+      renderProjectedTotal(hcTotal.textContent, alteracoesDoDia);
+    } finally {
+      if (showLoader) {
+        setHCLoading(false);
+      }
+    }
+  }
+
+  async function iniciarMonitoramentoHC() {
+    await verificarAlteracoesHC(false);
+
+    if (monitorInterval) {
+      clearInterval(monitorInterval);
+    }
+
+    monitorInterval = setInterval(async () => {
+      await verificarAlteracoesHC(false);
+    }, 10000);
+  }
+
+  function openPanelConfigModal() {
+    clearStatus(configStatus);
+
+    sheetInput.value = wizardState.sheet_id || "";
+    tabInputManual.value = wizardState.tab_name || "";
+    populateTabs(wizardState.tabs || [], wizardState.tab_name || "");
+
+    sheetPreviewText.textContent = wizardState.spreadsheet_name
+      ? `Planilha encontrada: ${wizardState.spreadsheet_name}`
+      : "Nenhuma planilha validada ainda.";
+
+    configModal.classList.add("show");
+  }
+
+  function closeConfigModalFn() {
+    configModal.classList.remove("show");
+  }
+
+  function closeFilterModalFn() {
+    filterModal.classList.remove("show");
+  }
+
+  toggleSidebar.addEventListener("click", () => {
+    sidebar.classList.toggle("open");
+  });
+
+  if (openConfig) openConfig.addEventListener("click", openPanelConfigModal);
+  if (reloadIconBtn) reloadIconBtn.addEventListener("click", async () => {
+    await carregarTotal();
+    await verificarAlteracoesHC(false);
+  });
+  if (openConfigModule) openConfigModule.addEventListener("click", openPanelConfigModal);
+  if (openFilterEditor) openFilterEditor.addEventListener("click", openFilterModal);
+  if (openFilterEditorTop) openFilterEditorTop.addEventListener("click", openFilterModal);
+
+  closeConfig.addEventListener("click", closeConfigModalFn);
+  closeFilterModal.addEventListener("click", closeFilterModalFn);
+
+  btnCancelarConfig.addEventListener("click", closeConfigModalFn);
+  btnCancelarFilter.addEventListener("click", closeFilterModalFn);
+
+  configModal.addEventListener("click", (e) => {
+    if (e.target === configModal) {
+      closeConfigModalFn();
+    }
+  });
+
+  filterModal.addEventListener("click", (e) => {
+    if (e.target === filterModal) {
+      closeFilterModalFn();
+    }
+  });
+
+  if (closeChangeDetailsModal) closeChangeDetailsModal.addEventListener("click", closeChangeDetailsModalFn);
+  if (changeDetailsModal) {
+    changeDetailsModal.addEventListener("click", (e) => {
+      if (e.target === changeDetailsModal) {
+        closeChangeDetailsModalFn();
+      }
+    });
+  }
+
+  toggleManualTab.addEventListener("click", () => toggleManualTabMode());
+
+  btnBuscarAbas.addEventListener("click", buscarAbasPlanilha);
+  btnSavePanelConfig.addEventListener("click", salvarConfiguracaoPainel);
+  btnSaveFiltersOnly.addEventListener("click", () => salvarSomenteFiltros(false, true));
+  btnClearFilters.addEventListener("click", excluirPerfilAtual);
+  filtersPrev.addEventListener("click", () => {
+    if (activeFilterPage > 0) {
+      activeFilterPage -= 1;
+      updateFilterCarousel();
+    }
+  });
+  filtersNext.addEventListener("click", () => {
+    if (activeFilterPage < filterPageGroups.length - 1) {
+      activeFilterPage += 1;
+      updateFilterCarousel();
+    }
+  });
+
+  window.addEventListener("resize", () => {
+    requestAnimationFrame(calculateFilterPages);
+  });
+
+  window.addEventListener("DOMContentLoaded", async () => {
+    try {
+      const profiles = getFilterProfiles();
+      setStoredActiveProfileSlot(getNextUsableProfileSlot(getStoredActiveProfileSlot()));
+      pendingProfileSlot = currentProfileSlot;
+
+      const activeProfile = profiles[currentProfileSlot];
+      if (activeProfile) {
+        filterProfileName.value = activeProfile.name || `Perfil ${currentProfileSlot + 1}`;
+        wizardState.filters = JSON.parse(JSON.stringify(activeProfile.filters || {}));
       } else {
-        wizardState.filters[coluna].push(valor);
+        filterProfileName.value = `Perfil ${currentProfileSlot + 1}`;
       }
 
-      if (!wizardState.filters[coluna].length) {
-        delete wizardState.filters[coluna];
-      }
-
-      renderColumnValuesCurrentState();
+      await carregarConfig(!!activeProfile);
+      renderProfileSlots();
+      renderActiveFilters(wizardState.filters);
       renderSelectedFilters();
+      renderChangesList(getStoredDailyChanges());
+      await carregarTotal();
+      await iniciarMonitoramentoHC();
+    } catch (err) {
+      showStatus(mainStatus, err.message, "error");
     }
+  });
+</script>
 
-    async function salvarConfiguracaoFinal() {
-      setLoading(true);
-      clearStatus(wizardStatus);
-
-      try {
-        if (!wizardState.sheet_id) {
-          throw new Error("Planilha não definida.");
-        }
-
-        if (!wizardState.tab_name) {
-          throw new Error("Aba não definida.");
-        }
-
-        const resp = await fetch("/planejamento/hc-config/save", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            sheet_id: wizardState.sheet_id,
-            tab_name: wizardState.tab_name,
-            filters: wizardState.filters
-          })
-        });
-
-        const data = await resp.json();
-
-        if (!data.ok) {
-          throw new Error(data.detail || data.msg || "Falha ao salvar configuração.");
-        }
-
-        showStatus(wizardStatus, data.msg || "Configuração salva com sucesso.", "success");
-        renderActiveFilters(wizardState.filters);
-        closeModalFn();
-        await carregarConfig();
-        await carregarTotal();
-
-        if (monitorInterval) {
-          clearInterval(monitorInterval);
-          monitorInterval = null;
-        }
-        await iniciarMonitoramentoHC();
-      } catch (err) {
-        showStatus(wizardStatus, err.message, "error");
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    function limparFiltros() {
-      wizardState.filters = {};
-      renderSelectedFilters();
-      renderColumnValuesCurrentState();
-    }
-
-    function renderMonitorAlteracoes(alteracoes) {
-      if (!alteracoes || alteracoes.length === 0) {
-        monitorList.innerHTML = `
-          <div class="info-item">
-            <span>Nenhuma alteração detectada.</span>
-            <strong>OK</strong>
-          </div>
-        `;
-        return;
-      }
-
-      window.monitorAlteracoesMap = {};
-
-      monitorList.innerHTML = alteracoes.map(item => {
-        const impacto = Number(item.impacto || 0);
-        const impactoTexto = impacto > 0 ? `+${impacto}` : `${impacto}`;
-        const impactoClasse = impacto > 0 ? "positive" : (impacto < 0 ? "negative" : "");
-        const categoriaClasse = formatCategoriaClasse(item.categoria);
-        const itemId = Number(item.id || 0);
-
-        window.monitorAlteracoesMap[itemId] = item;
-
-        return `
-          <div class="info-item monitor-item">
-            <div class="monitor-item-main">
-              <div class="category-badge ${escapeHtml(categoriaClasse)}">
-                ${escapeHtml(item.categoria_label || "Mudança")}
-              </div>
-              <div class="monitor-item-title">${escapeHtml(item.nome || item.matricula || "Alteração")}</div>
-              <div class="monitor-item-message">${escapeHtml(item.mensagem || "Alteração detectada.")}</div>
-              <div class="monitor-item-meta">
-                Matrícula: ${escapeHtml(item.matricula || "--")} • Detectado em: ${escapeHtml(item.detectado_em || "--")}
-              </div>
-            </div>
-            <div class="monitor-item-actions">
-              <span class="impact-badge ${impactoClasse}">${escapeHtml(impactoTexto)}</span>
-              <button class="btn btn-outline" type="button" onclick="openDetailsHCById(${itemId})">Ver detalhes</button>
-              <button class="btn btn-success" type="button" onclick="confirmarAlteracaoHC(${itemId})">Confirmar</button>
-            </div>
-          </div>
-        `;
-      }).join("");
-    }
-    function openDetailsHCById(itemId) {
-      try {
-        const item = (window.monitorAlteracoesMap || {})[itemId];
-        if (!item) {
-          throw new Error("Alteração não encontrada para exibir os detalhes.");
-        }
-        openDetailsModal(item);
-      } catch (err) {
-        console.error("Falha ao abrir detalhes da alteração:", err);
-        showStatus(mainStatus, err.message || "Não foi possível abrir os detalhes.", "error");
-      }
-    }
-
-    window.openDetailsHCById = openDetailsHCById;
-    async function confirmarAlteracaoHC(changeId) {
-      try {
-        const resp = await fetch("/planejamento/hc-monitor/confirm", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ change_id: changeId })
-        });
-
-        const data = await resp.json();
-
-        if (!data.ok) {
-          throw new Error(data.detail || data.msg || "Erro ao confirmar alteração.");
-        }
-
-        showStatus(mainStatus, data.msg || "Alteração confirmada com sucesso.", "success");
-        await verificarAlteracoesHC();
-      } catch (err) {
-        showStatus(mainStatus, err.message, "error");
-      }
-    }
-
-    function openDetailsHC(itemEncoded) {
-      try {
-        const item = JSON.parse(decodeURIComponent(itemEncoded));
-        openDetailsModal(item);
-      } catch (err) {
-        console.error("Falha ao abrir detalhes da alteração:", err);
-      }
-    }
-
-    window.confirmarAlteracaoHC = confirmarAlteracaoHC;
-    window.openDetailsHC = openDetailsHC;
-
-    function notificarAlteracoesBrowser(alteracoes) {
-      if (!alteracoes || alteracoes.length === 0) return;
-      if (!("Notification" in window)) return;
-
-      if (Notification.permission === "granted") {
-        alteracoes.forEach(item => {
-          new Notification("Alteração no HeadCount", {
-            body: item.mensagem || "Uma alteração foi detectada na base."
-          });
-        });
-      }
-    }
-
-    async function verificarAlteracoesHC() {
-      try {
-        const resp = await fetch("/planejamento/hc-monitor", {
-          method: "GET",
-          headers: { "Accept": "application/json" }
-        });
-
-        const data = await resp.json();
-
-        if (!data.ok) {
-          throw new Error(data.detail || data.msg || "Erro no monitoramento.");
-        }
-
-        monitorLastCheck.textContent = data.last_check || "--";
-        renderHCMonitorState(data.total_confirmado ?? 0, data.alteracoes || []);
-        renderMonitorAlteracoes(data.alteracoes || []);
-
-        if (data.alteracoes_novas && data.alteracoes_novas.length > 0) {
-          notificarAlteracoesBrowser(data.alteracoes_novas);
-        }
-
-        if (data.alteracoes && data.alteracoes.length > 0) {
-          showStatus(mainStatus, `${data.alteracoes.length} alteração(ões) pendente(s) de confirmação.`, "warning");
-        }
-      } catch (err) {
-        console.error("Erro ao verificar alterações HC:", err);
-      }
-    }
-
-    async function iniciarMonitoramentoHC() {
-      await verificarAlteracoesHC();
-
-      if (monitorInterval) {
-        clearInterval(monitorInterval);
-      }
-
-      monitorInterval = setInterval(async () => {
-        await verificarAlteracoesHC();
-      }, 10000);
-    }
-
-    toggleSidebar.addEventListener("click", () => {
-      sidebar.classList.toggle("open");
-    });
-
-    openConfig.addEventListener("click", openModal);
-    openConfig2.addEventListener("click", openModal);
-    closeConfig.addEventListener("click", closeModalFn);
-    closeDetails.addEventListener("click", closeDetailsModalFn);
-
-    cancelButtons.forEach(btn => btn.addEventListener("click", closeModalFn));
-
-    configModal.addEventListener("click", (e) => {
-      if (e.target === configModal) closeModalFn();
-    });
-
-    detailsModal.addEventListener("click", (e) => {
-      if (e.target === detailsModal) closeDetailsModalFn();
-    });
-
-    toggleManualTab.addEventListener("click", () => {
-      toggleManualTabMode();
-    });
-
-    btnStep1Continue.addEventListener("click", buscarAbasPlanilha);
-    btnStep2Back.addEventListener("click", () => goToStep(1));
-    btnStep2Continue.addEventListener("click", validarAbaECarregarColunas);
-    btnStep3Back.addEventListener("click", () => goToStep(2));
-    btnSaveConfig.addEventListener("click", salvarConfiguracaoFinal);
-    btnClearFilters.addEventListener("click", limparFiltros);
-    reloadData.addEventListener("click", carregarTotal);
-
-    window.addEventListener("DOMContentLoaded", async () => {
-      try {
-        await carregarConfig();
-        await carregarTotal();
-
-        if ("Notification" in window && Notification.permission !== "granted") {
-          await Notification.requestPermission();
-        }
-
-        await iniciarMonitoramentoHC();
-      } catch (err) {
-        showStatus(mainStatus, err.message, "error");
-      }
-    });
-  </script>
 </body>
 </html>
