@@ -1,0 +1,11 @@
+Flask
+gspread
+google-auth
+google-auth-oauthlib
+gspread-dataframe
+python-dotenv
+pandas
+sqlalchemy
+openpyxl
+numpy
+psycopg2-binary
